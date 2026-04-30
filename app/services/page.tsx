@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Services",
   description:
     "Meta Tronix services: web, mobile, CRM, SaaS, UI/UX, and cloud delivery. Explore how we work and request a tailored quote.",
+  alternates: { canonical: "/services" },
 };
 
 export default function ServicesPage() {

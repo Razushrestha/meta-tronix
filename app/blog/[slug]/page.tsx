@@ -4,6 +4,7 @@ import { PortableText } from "@portabletext/react";
 import { notFound } from "next/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { getBlogPostDetailMerged, getBlogSlugs } from "@/lib/sanity/content";
+import { getSiteUrl } from "@/lib/site-url";
 
 type Props = { params: { slug: string } };
 
@@ -15,9 +16,28 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getBlogPostDetailMerged(params.slug);
   if (!post) return { title: "Article" };
+  const path = `/blog/${params.slug}`;
+  const publishedTime = new Date(`${post.date}T12:00:00.000Z`).toISOString();
+  const siteUrl = getSiteUrl();
   return {
     title: post.title,
     description: post.hook,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      url: path,
+      title: post.title,
+      description: post.hook,
+      publishedTime,
+      modifiedTime: publishedTime,
+      section: post.category,
+      authors: [siteUrl],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.hook,
+    },
   };
 }
 
@@ -26,9 +46,47 @@ export default async function BlogArticlePage({ params }: Props) {
   if (!post) notFound();
 
   const hasBody = Array.isArray(post.body) && post.body.length > 0;
+  const siteUrl = getSiteUrl();
+  const articleUrl = `${siteUrl}/blog/${post.slug}`;
+  const publishedIso = new Date(`${post.date}T12:00:00.000Z`).toISOString();
+  const ogImageUrl = `${siteUrl}/blog/${post.slug}/opengraph-image`;
+
+  const blogPostingLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.hook,
+    image: [ogImageUrl, `${siteUrl}/metatronixlogo.png`],
+    url: articleUrl,
+    datePublished: publishedIso,
+    dateModified: publishedIso,
+    author: {
+      "@type": "Organization",
+      name: "Meta Tronix",
+      url: siteUrl,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Meta Tronix",
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/metatronixlogo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+    articleSection: post.category,
+  };
 
   return (
     <article className="bg-white pb-20 md:pb-28">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd) }}
+      />
       <PageHero innerClassName="max-w-3xl">
         <Link
           href="/blog"
@@ -53,6 +111,8 @@ export default async function BlogArticlePage({ params }: Props) {
       <div className="max-w-3xl mx-auto px-6 pt-10 md:pt-14">
         <div
           className={`h-48 rounded-2xl bg-gradient-to-br ${post.gradient}`}
+          role="img"
+          aria-label={`${post.title} — article cover`}
         />
         <div className="mt-10 space-y-5 text-base leading-relaxed text-brand-body">
           {hasBody ?

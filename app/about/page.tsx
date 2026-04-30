@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Learn how Meta Tronix approaches product engineering, scalable architecture, and client-obsessed delivery from Kathmandu, Nepal.",
+  alternates: { canonical: "/about" },
 };
 
 export default async function AboutPage() {

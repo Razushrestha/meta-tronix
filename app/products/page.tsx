@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Products",
   description:
     "Explore products engineered by Meta Tronix: platforms for innovation, connection, consultancy, and events.",
+  alternates: { canonical: "/products" },
 };
 
 export default async function ProductsPage() {

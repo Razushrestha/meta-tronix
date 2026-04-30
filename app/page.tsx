@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HeroSection } from "@/components/home/HeroSection";
 import { StatsSection } from "@/components/home/StatsSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
@@ -12,6 +13,10 @@ import {
   getTrustedBySectionMerged,
 } from "@/lib/sanity/content";
 import { getPublicPartnersLogos } from "@/lib/partners-public-logos";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [tech, homeProducts, trusted, testimonials] = await Promise.all([

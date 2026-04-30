@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Contact Meta Tronix for product engineering, SaaS builds, and digital transformation in Kathmandu, Nepal.",
+  alternates: { canonical: "/contact" },
 };
 
 export default async function ContactPage() {
