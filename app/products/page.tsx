@@ -3,7 +3,11 @@ import { Check } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
 import { GradientButton } from "@/components/shared/GradientButton";
-import { getProductsMerged, getProductsPageHeroMerged } from "@/lib/sanity/content";
+import {
+  getProductsMerged,
+  getProductsPageHeroMerged,
+} from "@/lib/sanity/content";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -53,8 +57,14 @@ export default async function ProductsPage() {
                 <div className="border-b border-brand-border border-l-4 border-l-[#0EA5E9] bg-brand-section px-6 py-8 md:px-10 md:py-10">
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                     <div className="flex items-start gap-4">
-                      <div className="h-14 w-14 rounded-2xl border border-brand-border bg-white flex items-center justify-center font-display font-bold text-[#0EA5E9] text-lg shadow-soft shrink-0">
-                        {p.name.slice(0, 2).toUpperCase()}
+                      <div className="h-14 w-14 rounded-2xl border border-brand-border bg-white flex items-center justify-center shadow-soft shrink-0 overflow-hidden">
+                        <Image
+                          src={p.icon}
+                          alt={`${p.name} icon`}
+                          width={56}
+                          height={56}
+                          className="w-full h-auto"
+                        />
                       </div>
                       <div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#0EA5E9]">
@@ -75,7 +85,9 @@ export default async function ProductsPage() {
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-700">
                       Problem it solves
                     </h3>
-                    <p className="mt-2 text-slate-700 leading-relaxed">{p.problem}</p>
+                    <p className="mt-2 text-slate-700 leading-relaxed">
+                      {p.problem}
+                    </p>
                     <h3 className="mt-8 text-sm font-semibold uppercase tracking-wider text-cyan-700">
                       Key features
                     </h3>
@@ -109,21 +121,21 @@ export default async function ProductsPage() {
                         ))}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">
-                        Product preview
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        Screenshot mockup placeholder. Swap in real product
-                        imagery when available.
-                      </p>
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+                      <Image
+                        src={p.preview}
+                        alt={`${p.name} preview`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto"
+                      />
                     </div>
                     <GradientButton
-                      href="/contact"
+                      href={p.url}
                       variant="primary"
                       className="w-full sm:w-auto self-start"
                     >
-                      Visit Product / Enquire
+                      Visit Product
                     </GradientButton>
                   </div>
                 </div>

@@ -86,9 +86,8 @@ export async function getTrustedBySectionMerged(): Promise<TrustedBySection> {
     organizations?: TrustedOrgRow[];
   }>(qTrustedBy);
   const orgs = r?.organizations;
-  const mapped: Partner[] =
-    orgs?.length ?
-      orgs
+  const mapped: Partner[] = orgs?.length
+    ? orgs
         .filter((o) => o.name && o.logoUrl)
         .map((o) => ({ name: o.name, logo: o.logoUrl as string }))
     : [];
@@ -96,12 +95,11 @@ export async function getTrustedBySectionMerged(): Promise<TrustedBySection> {
   return {
     title: r?.title || defaultTrustedTitles.title,
     subtitle: r?.subtitle || defaultTrustedTitles.subtitle,
-    partners:
-      collabPartners.length ?
-        collabPartners
-      : mapped.length ?
-        mapped
-      : defaultTrustedPartners,
+    partners: collabPartners.length
+      ? collabPartners
+      : mapped.length
+        ? mapped
+        : defaultTrustedPartners,
   };
 }
 
@@ -140,6 +138,9 @@ type ProductDetailRow = {
   problem: string;
   features: string[];
   tech: string[];
+  icon: string;
+  preview: string;
+  url: string;
 };
 
 export async function getProductsMerged(): Promise<Product[]> {
@@ -152,6 +153,9 @@ export async function getProductsMerged(): Promise<Product[]> {
     problem: p.problem,
     features: p.features ?? [],
     tech: p.tech ?? [],
+    icon: p.icon,
+    preview: p.preview,
+    url: p.url,
   }));
 }
 
@@ -194,11 +198,11 @@ export async function getBlogSlugs(): Promise<string[]> {
 }
 
 export async function getBlogPostDetailMerged(
-  slug: string
+  slug: string,
 ): Promise<BlogPostDetail | null> {
   const row = await sanityFetch<BlogRow & { body?: PortableTextBlock[] }>(
     qBlogPostBySlug,
-    { slug }
+    { slug },
   );
   if (row?.slug) {
     return { ...rowToBlogPost(row), body: row.body ?? null };
@@ -215,10 +219,12 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
   const pickArr = <T>(
     k: keyof AboutPageContent,
     fallback: T[],
-    guard: (x: unknown) => x is T
+    guard: (x: unknown) => x is T,
   ): T[] => {
     const v = raw[k];
-    return Array.isArray(v) && v.length && v.every(guard) ? (v as T[]) : fallback;
+    return Array.isArray(v) && v.length && v.every(guard)
+      ? (v as T[])
+      : fallback;
   };
   return {
     heroEyebrow: pick("heroEyebrow"),
@@ -235,7 +241,7 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
         x !== null &&
         "title" in x &&
         "body" in x &&
-        "iconKey" in x
+        "iconKey" in x,
     ),
     leadershipEyebrow: pick("leadershipEyebrow"),
     leadershipTitle: pick("leadershipTitle"),
@@ -257,7 +263,7 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
         x !== null &&
         "title" in x &&
         "desc" in x &&
-        "iconKey" in x
+        "iconKey" in x,
     ),
     positioningEyebrow: pick("positioningEyebrow"),
     positioningBody: pick("positioningBody"),
@@ -272,7 +278,7 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
         x !== null &&
         "year" in x &&
         "label" in x &&
-        "detail" in x
+        "detail" in x,
     ),
     stackEyebrow: pick("stackEyebrow"),
     stackTitle: pick("stackTitle"),
@@ -281,7 +287,7 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
       "stackStrip",
       d.stackStrip,
       (x): x is StackStripItem =>
-        typeof x === "object" && x !== null && "iconKey" in x && "label" in x
+        typeof x === "object" && x !== null && "iconKey" in x && "label" in x,
     ),
   };
 }
@@ -291,11 +297,15 @@ export async function getAboutPageMerged(): Promise<AboutPageContent> {
   return mergeAbout(raw);
 }
 
-function mergeContact(raw: Partial<ContactPageContent> | null): ContactPageContent {
+function mergeContact(
+  raw: Partial<ContactPageContent> | null,
+): ContactPageContent {
   const d = defaultContactPageContent;
   if (!raw) return d;
   const lines = Array.isArray(raw.addressLines)
-    ? raw.addressLines.filter((x): x is string => typeof x === "string" && x.length > 0)
+    ? raw.addressLines.filter(
+        (x): x is string => typeof x === "string" && x.length > 0,
+      )
     : d.addressLines;
   return {
     heroEyebrow: raw.heroEyebrow || d.heroEyebrow,

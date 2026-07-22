@@ -5,6 +5,9 @@ export type Product = {
   problem: string;
   features: string[];
   tech: string[];
+  icon: string;
+  preview: string;
+  url: string;
 };
 
 export const products: Product[] = [
@@ -19,7 +22,19 @@ export const products: Product[] = [
       "Reputation and contribution signals that reward quality, not volume",
       "Moderation tools tuned for constructive technical discourse",
     ],
-    tech: ["Next.js", "PostgreSQL", "Realtime", "AWS"],
+    tech: [
+      "Next.js",
+      "PostgreSQL",
+      "Realtime",
+      "AWS",
+      "Flutter",
+      "Firebase",
+      "Python",
+      "Ai/ML",
+    ],
+    icon: "/products/innovator.jpg",
+    preview: "/products/innovator-preview.png",
+    url: "https://play.google.com/store/apps/details?id=com.innovation.innovator&pcampaignid=web_share",
   },
   {
     id: "linder",
@@ -32,7 +47,10 @@ export const products: Product[] = [
       "Safety workflows with reporting, blocking, and human review hooks",
       "Performance-first mobile builds for flaky networks",
     ],
-    tech: ["Flutter", "Node.js", "MongoDB", "Firebase"],
+    tech: ["Flutter", "Node.js", "MongoDB", "Firebase", "Flutter"],
+    icon: "",
+    preview: "/products/linder-preview.png",
+    url: "https://innovator.com",
   },
   {
     id: "meta-crm",
@@ -46,6 +64,9 @@ export const products: Product[] = [
       "Executive dashboards for utilization and revenue forecasting",
     ],
     tech: ["Laravel", "MySQL", "Vue", "Docker"],
+    icon: "",
+    preview: "",
+    url: "https://innovator.com",
   },
   {
     id: "eventify",
@@ -58,6 +79,9 @@ export const products: Product[] = [
       "Check-in flows that work offline-first for crowded venues",
       "Organizer analytics for attendance, revenue, and cohort insights",
     ],
-    tech: ["Next.js", "Stripe", "PostgreSQL", "Vercel"],
+    tech: ["Next.js", "Stripe", "PostgreSQL", "Vercel", "Flutter", "Firebase"],
+    icon: "/products/eventify.jpg",
+    preview: "/products/eventify-preview.png",
+    url: "https://play.google.com/store/apps/details?id=com.nepatronix.eventsolutions&pcampaignid=web_share",
   },
 ];
