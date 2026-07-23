@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Check } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
-import { GradientButton } from "@/components/shared/GradientButton";
 import {
   getProductsMerged,
   getProductsPageHeroMerged,
 } from "@/lib/sanity/content";
 import Image from "next/image";
+import { TechBackground } from "@/components/shared/TechBackground";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -25,14 +25,9 @@ export default async function ProductsPage() {
   return (
     <div className="bg-white pb-20 md:pb-28">
       <PageHero
-        className="border-brand-border bg-mesh-light bg-white"
+        className="border-brand-border bg-mesh-light"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<TechBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           {hero.heroKicker}
@@ -48,6 +43,16 @@ export default async function ProductsPage() {
           {hero.heroLead}
         </p>
       </PageHero>
+
+      <div className="max-w-3xl mx-auto px-6 pt-16 md:pt-24 text-center">
+        <h2 className="mt-3 font-display text-2xl md:text-3xl font-bold text-brand-navy text-balance">
+          Real builds, real problems solved
+        </h2>
+        <p className="mt-3 text-brand-body text-sm md:text-base leading-relaxed text-balance">
+          No filler slides every product below shipped to solve a specific
+          problem, backed by the stack that made it possible.
+        </p>
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-14 md:pt-20">
         <div className="space-y-20 md:space-y-24">
@@ -130,13 +135,22 @@ export default async function ProductsPage() {
                         className="w-full h-auto"
                       />
                     </div>
-                    <GradientButton
-                      href={p.url}
-                      variant="primary"
-                      className="w-full sm:w-auto self-start"
-                    >
-                      Visit Product
-                    </GradientButton>
+                    <div className="mt-4 w-full">
+                      {p.url ? (
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-3 font-semibold text-white transition hover:opacity-90"
+                        >
+                          Visit Product
+                        </a>
+                      ) : (
+                        <div className="flex h-11 w-full items-center justify-center rounded-xl border border-brand-border bg-brand-section text-sm font-medium text-slate-500 ">
+                          Coming Soon
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </article>

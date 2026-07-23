@@ -7,7 +7,7 @@ export type Product = {
   tech: string[];
   icon: string;
   preview: string;
-  url: string;
+  url?: string;
 };
 
 export const products: Product[] = [
@@ -48,9 +48,9 @@ export const products: Product[] = [
       "Performance-first mobile builds for flaky networks",
     ],
     tech: ["Flutter", "Node.js", "MongoDB", "Firebase", "Flutter"],
-    icon: "",
+    icon: "/products/linder.png",
     preview: "/products/linder-preview.png",
-    url: "https://innovator.com",
+    url: "",
   },
   {
     id: "meta-crm",
@@ -64,9 +64,9 @@ export const products: Product[] = [
       "Executive dashboards for utilization and revenue forecasting",
     ],
     tech: ["Laravel", "MySQL", "Vue", "Docker"],
-    icon: "",
-    preview: "",
-    url: "https://innovator.com",
+    icon: "/products/meta-crm.png",
+    preview: "/products/meta-crm-preview.png",
+    url: "",
   },
   {
     id: "eventify",

@@ -140,7 +140,7 @@ type ProductDetailRow = {
   tech: string[];
   icon: string;
   preview: string;
-  url: string;
+  url?: string;
 };
 
 export async function getProductsMerged(): Promise<Product[]> {
