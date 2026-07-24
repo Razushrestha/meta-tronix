@@ -1,22 +1,10 @@
 "use client";
 
-import {
-  Cloud,
-  LayoutDashboard,
-  MonitorSmartphone,
-  Palette,
-  Server,
-  Sparkles,
-} from "lucide-react";
+import { LayoutDashboard, Server, Sparkles } from "lucide-react";
 import { FadeInSection } from "@/components/shared/FadeInSection";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 
 const services = [
-  {
-    title: "Web Development",
-    benefit: "Fast, accessible interfaces with resilient architecture.",
-    icon: MonitorSmartphone,
-  },
   {
     title: "Mobile App Development",
     benefit: "Native-quality experiences on iOS and Android.",
@@ -32,16 +20,6 @@ const services = [
     benefit: "Billing, auth, analytics, and multi-tenant patterns done right.",
     icon: Sparkles,
   },
-  {
-    title: "UI/UX Design",
-    benefit: "Interfaces that reduce friction and lift conversion.",
-    icon: Palette,
-  },
-  {
-    title: "Cloud & Deployment",
-    benefit: "CI/CD, observability, and infra that scales with demand.",
-    icon: Cloud,
-  },
 ];
 
 export function ServicesSection() {
@@ -51,7 +29,7 @@ export function ServicesSection() {
         <SectionHeading
           eyebrow="What we do"
           title="Services We Offer"
-          subtitle="Six disciplines. One product mindset: ship value early, iterate with data, and harden for scale."
+          subtitle="Three disciplines. One product mindset: ship value early, iterate with data, and harden for scale."
         />
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {services.map((s) => (

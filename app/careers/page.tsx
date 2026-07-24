@@ -169,8 +169,9 @@ export default function CareersPage() {
             Don&apos;t see your role listed?
           </h2>
           <p className="mt-3 text-brand-body leading-relaxed max-w-xl mx-auto">
-            We're always interested in meeting strong engineers and designers.
-            Send us your work and tell us what you'd want to build.
+            We&apos;re always interested in meeting strong engineers and
+            designers. Send us your work and tell us what you&apos;d want to
+            build.
           </p>
           <div className="mt-8 flex justify-center">
             <GradientButton href="/contact" variant="primary">

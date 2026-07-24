@@ -60,13 +60,6 @@ const teamMembers: TeamMember[] = [
   },
 ];
 
-const stats = [
-  { value: "3+", label: "Years shipping" },
-  { value: "15+", label: "Products launched" },
-  { value: "100%", label: "Senior-led delivery" },
-  { value: "GMT+5:45", label: "Nepal timezone" },
-];
-
 export default function TeamPage() {
   return (
     <>
