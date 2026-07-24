@@ -31,6 +31,8 @@ export const qProductDetails = `*[_type == "productDetail"] | order(order asc, n
   name, tagline, problem,
   features,
   tech,
+  "image": image.asset->url,
+  url,
   order
 }`;
 

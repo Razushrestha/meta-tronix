@@ -5,6 +5,8 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { resolveAboutIcon } from "@/lib/about-icons";
 import { getAboutPageMerged } from "@/lib/sanity/content";
+import Image from "next/image";
+import { AboutBackground } from "@/components/shared/AboutBackground";
 
 export const metadata: Metadata = {
   title: "About",
@@ -19,14 +21,9 @@ export default async function AboutPage() {
   return (
     <>
       <PageHero
-        className="border-brand-border bg-mesh-light bg-white"
+        className="border-brand-border bg-mesh-light"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<AboutBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           {c.heroEyebrow}
@@ -69,7 +66,9 @@ export default async function AboutPage() {
                   <h3 className="mt-5 font-display text-xl font-bold text-brand-navy">
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-brand-body leading-relaxed">{item.body}</p>
+                  <p className="mt-2 text-brand-body leading-relaxed">
+                    {item.body}
+                  </p>
                 </div>
               );
             })}
@@ -87,13 +86,21 @@ export default async function AboutPage() {
               subtitle={c.leadershipSubtitle}
             />
             <div className="mt-8 flex flex-col sm:flex-row gap-6 items-start">
-              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-sky-50 to-cyan-50 border-2 border-brand-border flex items-center justify-center font-display text-xl font-bold text-[#0EA5E9] shrink-0">
-                {c.ceoAvatarInitials}
+              <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-brand-border shrink-0">
+                <Image
+                  src="/ceo.jpg"
+                  alt={c.ceoName}
+                  width={96}
+                  height={96}
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div>
                 <p className="text-brand-navy font-bold">{c.ceoName}</p>
                 <p className="text-sm text-brand-muted mt-1">{c.ceoRole}</p>
-                <p className="mt-4 text-brand-body leading-relaxed">{c.ceoBio}</p>
+                <p className="mt-4 text-brand-body leading-relaxed">
+                  {c.ceoBio}
+                </p>
               </div>
             </div>
           </div>

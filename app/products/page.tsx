@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import { Check } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
-import { GradientButton } from "@/components/shared/GradientButton";
-import { getProductsMerged, getProductsPageHeroMerged } from "@/lib/sanity/content";
+import {
+  getProductsMerged,
+  getProductsPageHeroMerged,
+} from "@/lib/sanity/content";
+import Image from "next/image";
+import { TechBackground } from "@/components/shared/TechBackground";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -21,14 +25,9 @@ export default async function ProductsPage() {
   return (
     <div className="bg-white pb-20 md:pb-28">
       <PageHero
-        className="border-brand-border bg-mesh-light bg-white"
+        className="border-brand-border bg-mesh-light"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<TechBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           {hero.heroKicker}
@@ -45,6 +44,16 @@ export default async function ProductsPage() {
         </p>
       </PageHero>
 
+      <div className="max-w-3xl mx-auto px-6 pt-16 md:pt-24 text-center">
+        <h2 className="mt-3 font-display text-2xl md:text-3xl font-bold text-brand-navy text-balance">
+          Real builds, real problems solved
+        </h2>
+        <p className="mt-3 text-brand-body text-sm md:text-base leading-relaxed text-balance">
+          No filler slides every product below shipped to solve a specific
+          problem, backed by the stack that made it possible.
+        </p>
+      </div>
+
       <div className="max-w-7xl mx-auto px-6 pt-14 md:pt-20">
         <div className="space-y-20 md:space-y-24">
           {products.map((p) => (
@@ -53,8 +62,14 @@ export default async function ProductsPage() {
                 <div className="border-b border-brand-border border-l-4 border-l-[#0EA5E9] bg-brand-section px-6 py-8 md:px-10 md:py-10">
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                     <div className="flex items-start gap-4">
-                      <div className="h-14 w-14 rounded-2xl border border-brand-border bg-white flex items-center justify-center font-display font-bold text-[#0EA5E9] text-lg shadow-soft shrink-0">
-                        {p.name.slice(0, 2).toUpperCase()}
+                      <div className="h-14 w-14 rounded-2xl border border-brand-border bg-white flex items-center justify-center shadow-soft shrink-0 overflow-hidden">
+                        <Image
+                          src={p.icon}
+                          alt={`${p.name} icon`}
+                          width={56}
+                          height={56}
+                          className="w-full h-auto"
+                        />
                       </div>
                       <div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#0EA5E9]">
@@ -75,7 +90,9 @@ export default async function ProductsPage() {
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-700">
                       Problem it solves
                     </h3>
-                    <p className="mt-2 text-slate-700 leading-relaxed">{p.problem}</p>
+                    <p className="mt-2 text-slate-700 leading-relaxed">
+                      {p.problem}
+                    </p>
                     <h3 className="mt-8 text-sm font-semibold uppercase tracking-wider text-cyan-700">
                       Key features
                     </h3>
@@ -109,22 +126,31 @@ export default async function ProductsPage() {
                         ))}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">
-                        Product preview
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        Screenshot mockup placeholder. Swap in real product
-                        imagery when available.
-                      </p>
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+                      <Image
+                        src={p.preview}
+                        alt={`${p.name} preview`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto"
+                      />
                     </div>
-                    <GradientButton
-                      href="/contact"
-                      variant="primary"
-                      className="w-full sm:w-auto self-start"
-                    >
-                      Visit Product / Enquire
-                    </GradientButton>
+                    <div className="mt-4 w-full">
+                      {p.url ? (
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-3 font-semibold text-white transition hover:opacity-90"
+                        >
+                          Visit Product
+                        </a>
+                      ) : (
+                        <div className="flex h-11 w-full items-center justify-center rounded-xl border border-brand-border bg-brand-section text-sm font-medium text-slate-500 ">
+                          Coming Soon
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </article>

@@ -5,6 +5,7 @@ import { SocialContactLinks } from "@/components/contact/SocialContactLinks";
 import { PageHero } from "@/components/layout/PageHero";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { getContactPageMerged } from "@/lib/sanity/content";
+import { ContactBackground } from "@/components/shared/ContactBackground";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -19,14 +20,9 @@ export default async function ContactPage() {
   return (
     <div className="bg-white pb-20 md:pb-28">
       <PageHero
-        className="border-brand-border bg-mesh-light bg-white"
+        className="border-brand-border bg-mesh-light"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<ContactBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           {c.heroEyebrow}
@@ -136,7 +132,10 @@ export default async function ContactPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-navy shadow-sm ring-1 ring-slate-200 transition hover:bg-cyan-50 hover:ring-[#0EA5E9]/35"
                 >
-                  <ExternalLink className="h-4 w-4 text-[#0EA5E9]" aria-hidden />
+                  <ExternalLink
+                    className="h-4 w-4 text-[#0EA5E9]"
+                    aria-hidden
+                  />
                   Open pinned location (Google Maps)
                 </a>
               </div>

@@ -3,6 +3,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { serviceDetails } from "@/lib/services";
+import { ServicesBackground } from "@/components/shared/ServicesBackground";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -17,12 +18,7 @@ export default function ServicesPage() {
       <PageHero
         className="border-brand-border bg-mesh-light bg-white"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<ServicesBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           Services
@@ -53,11 +49,15 @@ export default function ServicesPage() {
                     <h2 className="mt-6 font-display text-2xl md:text-3xl font-semibold text-slate-900">
                       {s.title}
                     </h2>
-                    <p className="mt-4 text-slate-600 leading-relaxed">{s.summary}</p>
+                    <p className="mt-4 text-slate-600 leading-relaxed">
+                      {s.summary}
+                    </p>
                     <p className="mt-6 text-sm font-semibold text-cyan-800 uppercase tracking-wide">
                       Pricing
                     </p>
-                    <p className="mt-1 text-slate-600 text-sm">{s.pricingHint}</p>
+                    <p className="mt-1 text-slate-600 text-sm">
+                      {s.pricingHint}
+                    </p>
                     <div className="mt-8">
                       <GradientButton href="/contact" variant="primary">
                         Get a Quote
@@ -69,7 +69,9 @@ export default function ServicesPage() {
                       <h3 className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">
                         Who it&apos;s for
                       </h3>
-                      <p className="mt-2 text-slate-700 leading-relaxed">{s.audience}</p>
+                      <p className="mt-2 text-slate-700 leading-relaxed">
+                        {s.audience}
+                      </p>
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-cyan-700 uppercase tracking-wider">

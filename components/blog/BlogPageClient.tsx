@@ -5,15 +5,9 @@ import Link from "next/link";
 import { blogPosts, type BlogCategory, type BlogPost } from "@/lib/blog";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
+import { BlogBackground } from "@/components/shared/BlogBackground";
 
-const tabs: BlogCategory[] = [
-  "All",
-  "Tech",
-  "Startup",
-  "AI",
-  "Design",
-  "IoT",
-];
+const tabs: BlogCategory[] = ["All", "Tech", "Startup", "AI", "Design", "IoT"];
 
 type BlogPageClientProps = {
   posts: BlogPost[];
@@ -25,27 +19,20 @@ export function BlogPageClient({ posts }: BlogPageClientProps) {
 
   const featured = useMemo(
     () => list.find((p) => p.featured) ?? list[0],
-    [list]
+    [list],
   );
 
   const filtered = useMemo(() => {
     if (cat === "All") return list.filter((p) => p.slug !== featured.slug);
-    return list.filter(
-      (p) => p.category === cat && p.slug !== featured.slug
-    );
+    return list.filter((p) => p.category === cat && p.slug !== featured.slug);
   }, [cat, featured.slug, list]);
 
   return (
     <div className="bg-white pb-20 md:pb-28">
       <PageHero
-        className="border-brand-border bg-mesh-light bg-white"
+        className="border-brand-border bg-mesh-light"
         innerClassName="max-w-3xl flex flex-col items-center text-center"
-        backdrop={
-          <div
-            className="pointer-events-none absolute inset-0 bg-dot-grid opacity-[0.35]"
-            aria-hidden
-          />
-        }
+        backdrop={<BlogBackground />}
       >
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#0EA5E9]">
           Insights
@@ -77,7 +64,9 @@ export function BlogPageClient({ posts }: BlogPageClientProps) {
                 <h2 className="mt-3 font-display text-2xl md:text-4xl font-semibold text-slate-900 leading-tight group-hover:text-sky-800 transition-colors">
                   {featured.title}
                 </h2>
-                <p className="mt-4 text-slate-600 leading-relaxed">{featured.hook}</p>
+                <p className="mt-4 text-slate-600 leading-relaxed">
+                  {featured.hook}
+                </p>
                 <p className="mt-6 text-sm text-slate-500">
                   {featured.readMinutes} min read, {featured.date}
                 </p>
