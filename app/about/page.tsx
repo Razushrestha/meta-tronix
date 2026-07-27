@@ -77,41 +77,47 @@ export default async function AboutPage() {
       </FadeInSection>
 
       <FadeInSection className="py-20 md:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
-            <SectionHeading
-              align="left"
-              eyebrow={c.leadershipEyebrow}
-              title={c.leadershipTitle}
-              subtitle={c.leadershipSubtitle}
-            />
-            <div className="mt-8 flex flex-col sm:flex-row gap-6 items-start">
-              <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-brand-border shrink-0">
-                <Image
-                  src="/ceo.jpg"
-                  alt={c.ceoName}
-                  width={96}
-                  height={96}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div>
-                <p className="text-brand-navy font-bold">{c.ceoName}</p>
-                <p className="text-sm text-brand-muted mt-1">{c.ceoRole}</p>
-                <p className="mt-4 text-brand-body leading-relaxed">
-                  {c.ceoBio}
-                </p>
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px w-6 bg-brand-navy/40" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-brand-accent text-[#0EA5E9]">
+                {c.leadershipEyebrow}
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-brand-navy leading-tight">
+              {c.leadershipTitle}{" "}
+              <span className="text-brand-accent text-[#0EA5E9]">CEO</span>
+            </h2>
+
+            <blockquote className="mt-8 border-l-2 border-brand-tealTo /40 pl-6">
+              <p className="mt-6 text-brand-body leading-relaxed">{c.ceoBio}</p>
+              <p className="mt-6 text-brand-body leading-relaxed">
+                {c.ceoShortBio}
+              </p>
+            </blockquote>
+
+            <blockquote className="mt-8 border-l-2 border-brand-tealTo /40 pl-6">
+              <p className="text-lg md:text-xl italic text-brand-body leading-relaxed">
+                {c.ceoQuote}
+              </p>
+            </blockquote>
+
+            <div className="mt-6 flex items-center gap-3">
+              <p className="text-xl font-bold text-brand-navy">{c.ceoName}</p>
+              <span className="text-brand-muted">·</span>
+              <p className="text-sm  text-[#0EA5E9]">{c.ceoRole}</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-brand-border bg-brand-section p-8 md:p-10 shadow-soft">
-            <p className="text-lg md:text-xl font-display text-brand-navy leading-relaxed italic">
-              {c.ceoQuote}
-            </p>
-            <p className="mt-6 text-sm font-semibold text-brand-navy">
-              {c.ceoQuoteAttribution}
-            </p>
-            <p className="text-xs text-brand-muted">{c.ceoQuoteRole}</p>
+
+          <div className="rounded-2xl overflow-hidden shadow-soft">
+            <Image
+              src="/CEO.jpeg"
+              alt={c.ceoName}
+              width={640}
+              height={480}
+              className="object-cover object-top"
+            />
           </div>
         </div>
       </FadeInSection>
