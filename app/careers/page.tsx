@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { MapPin, Clock, ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { resolveAboutIcon } from "@/lib/about-icons";
-import { openRoles } from "@/lib/careers-data";
 import { CareersBackground } from "@/components/shared/CareersBackground";
 
 export const metadata: Metadata = {
@@ -118,47 +116,11 @@ export default function CareersPage() {
             subtitle="Don't see a role that fits? We're always open to hearing from strong engineers and designers."
           />
 
-          {openRoles.length > 0 ? (
-            <div className="space-y-4">
-              {openRoles.map((role) => (
-                <a
-                  key={role.slug}
-                  href={`/careers/${role.slug}`}
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-brand-border bg-white p-6 md:p-7 shadow-soft hover:shadow-soft-md hover:border-[#0EA5E9]/40 transition-all"
-                >
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#0EA5E9]">
-                      {role.department}
-                    </p>
-                    <h3 className="mt-1 font-display text-xl font-bold text-brand-navy">
-                      {role.title}
-                    </h3>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-muted">
-                      <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4" />
-                        {role.location}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <Clock className="h-4 w-4" />
-                        {role.type}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#0EA5E9] shrink-0">
-                    View role
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-brand-border bg-brand-section p-10 text-center">
-              <p className="text-brand-body">
-                No open roles right now but we&apos;d still love to hear from
-                you.
-              </p>
-            </div>
-          )}
+          <div className="rounded-2xl border border-dashed border-brand-border bg-brand-section p-10 text-center">
+            <p className="text-brand-body">
+              No open roles right now but we&apos;d still love to hear from you.
+            </p>
+          </div>
         </div>
       </FadeInSection>
 

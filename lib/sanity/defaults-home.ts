@@ -114,7 +114,7 @@ export type TestimonialsPayload = {
 
 export const defaultTestimonials: TestimonialsPayload = {
   eyebrow: "Proof",
-  title: "Trusted by Our Valued Clients",
+  title: "Our Valued Clients",
   subtitle:
     "Result-focused partnerships: we measure success in shipped milestones, reliability, and measurable product outcomes.",
   items: [
