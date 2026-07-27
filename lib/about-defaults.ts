@@ -1,4 +1,8 @@
-export type AboutDifferentiator = { title: string; body: string; iconKey: string };
+export type AboutDifferentiator = {
+  title: string;
+  body: string;
+  iconKey: string;
+};
 export type AboutWhyPoint = { title: string; desc: string; iconKey: string };
 export type TimelineEntry = { year: string; label: string; detail: string };
 export type StackStripItem = { iconKey: string; label: string };
@@ -18,6 +22,7 @@ export type AboutPageContent = {
   ceoName: string;
   ceoRole: string;
   ceoBio: string;
+  ceoShortBio: string;
   ceoQuote: string;
   ceoQuoteAttribution: string;
   ceoQuoteRole: string;
@@ -67,14 +72,16 @@ export const defaultAboutPageContent: AboutPageContent = {
       iconKey: "heartHandshake",
     },
   ],
-  leadershipEyebrow: "Leadership",
-  leadershipTitle: "CEO Message",
+  leadershipEyebrow: "About Our Leadership",
+  leadershipTitle: "Message from the",
   leadershipSubtitle: "A note on how we show up for clients and our craft.",
   ceoAvatarInitials: "MT",
-  ceoName: "Meta Tronix Leadership",
+  ceoName: "Ronit Shrivastav",
   ceoRole: "Chief Executive Officer",
   ceoBio:
-    "We built Meta Tronix for teams who are tired of disposable software. Our bar is simple: would we run our own company on this architecture? If the answer is not an enthusiastic yes, we keep refining. Nepal gives us incredible engineering talent. Our job is to channel it into products the world trusts.",
+    "We built Meta Tronix for teams who are tired of disposable software. Our bar is simple: would we run our own company on this architecture? If the answer is not an enthusiastic yes, we keep refining. Nepal gives us incredible engineering talent. Our job is to channel it into products the world trusts. Our mission is to transform that talent into reliable, secure, and scalable products that organizations around the world can trust.",
+  ceoShortBio:
+    "Our mission is to build reliable, secure, and scalable digital products that organizations can depend on no matter where they operate. We believe great software is defined by quality, clarity, and long-term thinking, not shortcuts.",
   ceoQuote:
     "Ship in small, verifiable steps. Own the critical path. Document like your future self is on-call.",
   ceoQuoteAttribution: "Meta Tronix Leadership",
@@ -129,7 +136,8 @@ export const defaultAboutPageContent: AboutPageContent = {
     {
       year: "2024",
       label: "Product studio",
-      detail: "Repeatable discovery to delivery playbook across web and mobile.",
+      detail:
+        "Repeatable discovery to delivery playbook across web and mobile.",
     },
     {
       year: "2025",

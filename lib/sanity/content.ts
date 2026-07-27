@@ -250,6 +250,7 @@ function mergeAbout(raw: Partial<AboutPageContent> | null): AboutPageContent {
     ceoName: pick("ceoName"),
     ceoRole: pick("ceoRole"),
     ceoBio: pick("ceoBio"),
+    ceoShortBio: pick("ceoShortBio"),
     ceoQuote: pick("ceoQuote"),
     ceoQuoteAttribution: pick("ceoQuoteAttribution"),
     ceoQuoteRole: pick("ceoQuoteRole"),
