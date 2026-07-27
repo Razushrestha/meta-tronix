@@ -34,9 +34,9 @@ const teamMembers: TeamMember[] = [
     bio: "Builds and scales backend systems with Node.js, Express, and MongoDB focused on clean data modeling and API design.",
     photo: "/team/ajay.jpg",
     socials: {
-      linkedin: "https://linkedin.com/in/your-handle",
-      github: "https://github.com/Aj4y-Dev",
-      email: "ajay@metatronix.com",
+      linkedin: "#",
+      github: "#",
+      email: "#",
     },
   },
   {
@@ -56,6 +56,66 @@ const teamMembers: TeamMember[] = [
     photo: "/team/member-3.jpg",
     socials: {
       linkedin: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    name: "Team Member",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/member-2.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
     },
   },
 ];
