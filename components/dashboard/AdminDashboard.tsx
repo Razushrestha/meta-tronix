@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     <div className="flex h-full w-full overflow-hidden bg-dot-grid">
       <Sidebar active={tab} onChange={setTab} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col pt-16 md:pt-0">
         <Topbar title={meta.title} description={meta.description} />
 
         <main className="flex-1 overflow-y-auto px-8 py-6">
