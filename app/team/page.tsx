@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 type TeamMember = {
+  id: string;
   name: string;
   role: string;
   bio: string;
@@ -29,10 +30,33 @@ type TeamMember = {
 
 const teamMembers: TeamMember[] = [
   {
-    name: "santosh karki",
-    role: "Backend Engineer",
+    id: "ronit-shrivastav",
+    name: "Ronit Shrivastav",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/CEO.jpeg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    id: "razu-shrestha",
+    name: "Er. Razu Shrestha",
+    role: "Frontend Engineer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/razu.jpg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    id: "ayush-karki",
+    name: "Ayush karki",
+    role: "Full Stack Developer",
     bio: "Builds and scales backend systems with Node.js, Express, and MongoDB focused on clean data modeling and API design.",
-    photo: "/team/ajay.jpg",
+    photo: "/team/ayush.jpeg",
     socials: {
       linkedin: "#",
       github: "#",
@@ -40,25 +64,50 @@ const teamMembers: TeamMember[] = [
     },
   },
   {
-    name: "Team Member",
-    role: "Frontend Engineer",
+    id: "prashant-sharma",
+    name: "Prashant Sharma",
+    role: "Senior Flutter Developer",
     bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
+    photo: "/team/Prashant.jpeg",
     socials: {
       linkedin: "#",
       github: "#",
     },
   },
   {
-    name: "Team Member",
-    role: "Product Designer",
+    id: "deepak-shrestha",
+    name: "Deepak shrestha",
+    role: "Senior Frontend developer",
     bio: "Leads discovery and design systems work, keeping every product visually consistent and easy to use.",
-    photo: "/team/member-3.jpg",
+    photo: "/team/deepak.jpeg",
     socials: {
       linkedin: "#",
     },
   },
   {
+    id: "badal-chand",
+    name: "Badal Chand",
+    role: "Full stack developer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/badal.jpeg",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    id: "ajay-tamang",
+    name: "Ajay Tamang",
+    role: "Backend developer",
+    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
+    photo: "/team/ajay.png",
+    socials: {
+      linkedin: "#",
+      github: "#",
+    },
+  },
+  {
+    id: "team-member-3",
     name: "Team Member",
     role: "Frontend Engineer",
     bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
@@ -69,46 +118,7 @@ const teamMembers: TeamMember[] = [
     },
   },
   {
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
+    id: "team-member-4",
     name: "Team Member",
     role: "Frontend Engineer",
     bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
@@ -156,7 +166,7 @@ export default function TeamPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {teamMembers.map((member) => (
               <div
-                key={member.name}
+                key={member.id} // ← unique now
                 className="rounded-2xl border border-brand-border bg-white p-6 shadow-soft hover:shadow-soft-md transition-shadow"
               >
                 <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-brand-border">
