@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import DataTable, { Column } from "../DataTable";
-import Badge from "../Badge";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { TeamMember } from "../types";
