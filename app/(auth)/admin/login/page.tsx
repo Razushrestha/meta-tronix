@@ -4,29 +4,51 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (!email || !password) {
       setError("Fill in both fields");
       return;
     }
 
-    // Placeholder check — replace with real API call later
-    localStorage.setItem("isAdmin", "true");
-    router.push("/admin/dashboard");
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.message ?? "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/admin/dashboard");
+    } catch {
+      setError("Couldn't reach the server. Try again.");
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-dot-grid bg-mesh-light px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-sky-500">
             <span className="h-2 w-2 rounded-full bg-white" />
@@ -61,7 +83,8 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             placeholder="you@metatronix.com"
-            className="mb-4 w-full rounded-lg border border-brand-border px-3 py-2.5 text-sm text-brand-navy outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+            disabled={loading}
+            className="mb-4 w-full rounded-lg border border-brand-border px-3 py-2.5 text-sm text-brand-navy outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 disabled:bg-slate-50"
           />
 
           <label className="mb-1 block text-sm font-medium text-brand-body">
@@ -72,14 +95,16 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="••••••••"
-            className="mb-6 w-full rounded-lg border border-brand-border px-3 py-2.5 text-sm text-brand-navy outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+            disabled={loading}
+            className="mb-6 w-full rounded-lg border border-brand-border px-3 py-2.5 text-sm text-brand-navy outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 disabled:bg-slate-50"
           />
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+            disabled={loading}
+            className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Sign in
+            {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
