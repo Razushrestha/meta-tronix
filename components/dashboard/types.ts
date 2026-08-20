@@ -19,9 +19,13 @@ export interface TeamMember {
   id: string;
   name: string;
   role: string;
-  department: string;
-  email: string;
-  status: "active" | "invited";
+  bio?: string;
+  photo?: string;
+  socials?: {
+    linkedin?: string;
+    github?: string;
+    email?: string;
+  };
 }
 
 export interface CareerListing {
