@@ -27,6 +27,8 @@ const NAV_ITEMS: { key: DashboardTab; label: string; icon: ElementType }[] = [
   { key: "careers", label: "Careers", icon: Briefcase },
 ];
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 interface SidebarProps {
   active: DashboardTab;
   onChange: (tab: DashboardTab) => void;
@@ -36,6 +38,7 @@ export default function Sidebar({ active, onChange }: SidebarProps) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Always start closed, and reset if restored from bfcache (back/forward nav)
   useEffect(() => {
@@ -51,9 +54,22 @@ export default function Sidebar({ active, onChange }: SidebarProps) {
     return () => window.removeEventListener("pageshow", handlePageShow);
   }, []);
 
-  function handleLogout() {
-    localStorage.removeItem("isAdmin");
-    router.push("/login");
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
+    try {
+      await fetch(`${API_BASE}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+    } catch {
+      // Network failure shouldn't block logout — proceed to redirect anyway.
+    } finally {
+      router.push("/admin/login");
+      router.refresh(); // clears any cached client state tied to the old session
+    }
   }
 
   function handleNavClick(tab: DashboardTab) {
@@ -143,11 +159,12 @@ export default function Sidebar({ active, onChange }: SidebarProps) {
           )}
           <button
             onClick={handleLogout}
+            disabled={loggingOut}
             title={collapsed ? "Log out" : undefined}
-            className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+            className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            {!collapsed && "Log out"}
+            {!collapsed && (loggingOut ? "Signing out…" : "Log out")}
           </button>
         </div>
       </aside>
