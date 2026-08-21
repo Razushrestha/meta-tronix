@@ -5,6 +5,7 @@ import { Newspaper, Package, Users, Briefcase } from "lucide-react";
 import Sidebar, { DashboardTab } from "./Sidebar";
 import Topbar from "./Topbar";
 import StatCard from "./StatCard";
+import VisitsChart from "./VisitsChart";
 import BlogSection from "./sections/BlogSection";
 import ProductsSection from "./sections/ProductsSection";
 import TeamsSection from "./sections/TeamsSection";
@@ -69,12 +70,7 @@ export default function AdminDashboard() {
                   hint="Currently hiring"
                 />
               </div>
-              <div className="rounded-xl border border-brand-border bg-white p-6">
-                <p className="text-sm text-brand-muted">
-                  Pick a section from the sidebar to manage blog posts,
-                  products, team members, or career listings.
-                </p>
-              </div>
+              <VisitsChart />
             </div>
           )}
 

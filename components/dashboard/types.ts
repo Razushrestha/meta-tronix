@@ -1,18 +1,33 @@
 export interface BlogPost {
   id: string;
   title: string;
+  slug: string;
+  imageUrl: string;
+  content: string;
   author: string;
-  status: "draft" | "published" | "archived";
-  date: string;
+  category: "Tech" | "Startup" | "AI" | "Design" | "IOT";
+  published: boolean;
+  publishedAt?: string;
+  readMinutes: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Product {
   id: string;
   name: string;
-  category: string;
-  price: number;
-  stock: number;
+  slug: string;
+  tagline: string;
+  description?: string;
+  problem: string;
+  features: string[];
+  technologies: string[];
+  previewUrl: string;
+  productUrl: string;
+  featured: boolean;
   status: "active" | "inactive";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TeamMember {
@@ -33,6 +48,26 @@ export interface CareerListing {
   title: string;
   department: string;
   location: string;
-  type: "full-time" | "part-time" | "contract" | "internship";
-  status: "open" | "closed";
+  employmentType:
+    | "full-time"
+    | "part-time"
+    | "contract"
+    | "internship"
+    | "remote";
+  workplace: "onsite" | "remote" | "hybrid";
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  preferredQualifications: string[];
+  salary?: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+  experience: string;
+  vacancies: number;
+  applicationDeadline?: string;
+  status: "draft" | "open" | "closed";
+  createdAt: string;
+  updatedAt: string;
 }

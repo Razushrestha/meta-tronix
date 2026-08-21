@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function DashboardLayout({
   children,
 }: {
@@ -12,12 +14,31 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("isAdmin");
-    if (isAdmin !== "true") {
-      router.replace("/login");
-    } else {
-      setChecked(true);
+    let cancelled = false;
+
+    async function verifySession() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
+          credentials: "include",
+        });
+
+        if (cancelled) return;
+
+        if (res.ok) {
+          setChecked(true);
+        } else {
+          router.replace("/admin/login");
+        }
+      } catch {
+        if (!cancelled) router.replace("/admin/login");
+      }
     }
+
+    verifySession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   if (!checked) return null; // or a loading spinner
