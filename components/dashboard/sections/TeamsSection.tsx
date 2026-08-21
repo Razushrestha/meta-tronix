@@ -71,7 +71,14 @@ export default function TeamsSection() {
       const res = await fetch(`${API_BASE}/api/v1/team`, {
         credentials: "include",
       });
+
+      if (res.status === 404) {
+        setMembers([]); // no team members yet — not an error
+        return;
+      }
+
       if (!res.ok) throw new Error("Failed to load team members");
+
       const data = await res.json();
       setMembers(data.data ?? data);
     } catch {
@@ -226,7 +233,7 @@ export default function TeamsSection() {
           data={members}
           onEdit={openEdit}
           onDelete={setDeleting}
-          emptyLabel="No team members yet — add your first one."
+          emptyLabel="No team members yet add your first one."
         />
       )}
 
