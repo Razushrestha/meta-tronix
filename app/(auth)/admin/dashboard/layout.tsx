@@ -18,13 +18,28 @@ export default function DashboardLayout({
 
     async function verifySession() {
       try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
+        const refreshRes = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+          method: "POST",
           credentials: "include",
         });
 
         if (cancelled) return;
 
-        if (res.ok) {
+        if (!refreshRes.ok) {
+          router.replace("/admin/login");
+          return;
+        }
+
+        const { accessToken } = await refreshRes.json();
+
+        const meRes = await fetch(`${API_BASE}/api/v1/auth/me`, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (cancelled) return;
+
+        if (meRes.ok) {
           setChecked(true);
         } else {
           router.replace("/admin/login");
