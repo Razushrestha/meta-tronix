@@ -10,8 +10,7 @@ import BlogSection from "./sections/BlogSection";
 import ProductsSection from "./sections/ProductsSection";
 import TeamsSection from "./sections/TeamsSection";
 import CareersSection from "./sections/CareersSection";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 const TAB_META: Record<DashboardTab, { title: string; description: string }> = {
   overview: {
@@ -47,16 +46,23 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`${API_BASE}/api/v1/analytics/admin/overview`, {
-          credentials: "include",
-        });
+        const res = await apiFetch("/api/v1/analytics/admin/overview");
 
-        if (!res.ok) throw new Error("Failed to load overview");
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.message ?? "Failed to load overview");
+        }
 
         const data = await res.json();
         if (!cancelled) setCounts(data.data ?? data);
-      } catch {
-        if (!cancelled) setError("Couldn't load overview stats.");
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error && err.message !== "Failed to fetch"
+              ? err.message
+              : "Couldn't load overview stats.",
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
