@@ -1,47 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [checked, setChecked] = useState(false);
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function verifySession() {
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
-          credentials: "include",
-        });
-
-        if (cancelled) return;
-
-        if (res.ok) {
-          setChecked(true);
-        } else {
-          router.replace("/admin/login");
-        }
-      } catch {
-        if (!cancelled) router.replace("/admin/login");
-      }
+    if (!loading && (!user || user.role?.toLowerCase() !== "admin")) {
+      router.replace("/admin/login");
     }
+  }, [user, loading, router]);
 
-    verifySession();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
-
-  if (!checked) return null; // or a loading spinner
+  if (loading || !user) return null; // or a loading spinner
 
   return (
     <div className="h-screen w-full overflow-hidden bg-white">{children}</div>

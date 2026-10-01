@@ -7,8 +7,7 @@ import Badge from "../Badge";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { CareerListing } from "../types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 const FIELDS: FieldConfig[] = [
   {
@@ -75,12 +74,7 @@ const FIELDS: FieldConfig[] = [
     type: "text",
     placeholder: "e.g. 2-4 years",
   },
-  {
-    name: "vacancies",
-    label: "Vacancies",
-    type: "number",
-    placeholder: "1",
-  },
+  { name: "vacancies", label: "Vacancies", type: "number", placeholder: "1" },
   {
     name: "salaryMin",
     label: "Salary min",
@@ -117,6 +111,15 @@ const FIELDS: FieldConfig[] = [
   },
 ];
 
+// Mongo returns `_id`; the UI uses `id`. Support both.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const normalize = (c: any): CareerListing => ({ ...c, id: c.id ?? c._id });
+
+async function readError(res: Response, fallback: string) {
+  const data = await res.json().catch(() => null);
+  return data?.message ?? fallback;
+}
+
 export default function CareersSection() {
   const [listings, setListings] = useState<CareerListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,21 +137,25 @@ export default function CareersSection() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/v1/careers`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/v1/careers");
 
       if (res.status === 404) {
         setListings([]);
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to load listings");
+      if (!res.ok)
+        throw new Error(await readError(res, "Failed to load listings"));
 
       const data = await res.json();
-      setListings(data.data ?? data);
-    } catch {
-      setError("Couldn't load career listings. Try refreshing.");
+      const list = data.data ?? data;
+      setListings(Array.isArray(list) ? list.map(normalize) : []);
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message !== "Failed to fetch"
+          ? err.message
+          : "Couldn't load career listings. Try refreshing.",
+      );
     } finally {
       setLoading(false);
     }
@@ -257,37 +264,34 @@ export default function CareersSection() {
 
     try {
       if (editing) {
-        const res = await fetch(`${API_BASE}/api/v1/careers/${editing.id}`, {
+        const res = await apiFetch(`/api/v1/careers/${editing.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error("Failed to update listing");
-        const updated = await res.json();
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't update listing."));
+        const updated = normalize((await res.json()).data);
         setListings((prev) =>
-          prev.map((l) =>
-            l.id === editing.id ? { ...l, ...(updated.data ?? updated) } : l,
-          ),
+          prev.map((l) => (l.id === editing.id ? { ...l, ...updated } : l)),
         );
       } else {
-        const res = await fetch(`${API_BASE}/api/v1/careers`, {
+        const res = await apiFetch("/api/v1/careers", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error("Failed to create listing");
-        const created = await res.json();
-        setListings((prev) => [
-          (created.data ?? created) as CareerListing,
-          ...prev,
-        ]);
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't create listing."));
+        const created = normalize((await res.json()).data);
+        setListings((prev) => [created, ...prev]);
       }
       setModalOpen(false);
-    } catch {
+    } catch (err) {
       setError(
-        editing ? "Couldn't update listing." : "Couldn't create listing.",
+        err instanceof Error && err.message !== "Failed to fetch"
+          ? err.message
+          : editing
+            ? "Couldn't update listing."
+            : "Couldn't create listing.",
       );
     } finally {
       setSaving(false);
@@ -299,14 +303,18 @@ export default function CareersSection() {
     const target = deleting;
     setDeleting(null);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/careers/${target.id}`, {
+      const res = await apiFetch(`/api/v1/careers/${target.id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete listing");
+      if (!res.ok)
+        throw new Error(await readError(res, "Couldn't delete that listing."));
       setListings((prev) => prev.filter((l) => l.id !== target.id));
-    } catch {
-      setError("Couldn't delete that listing.");
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message !== "Failed to fetch"
+          ? err.message
+          : "Couldn't delete that listing.",
+      );
     }
   }
 

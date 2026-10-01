@@ -7,18 +7,11 @@ import Badge from "../Badge";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { BlogPost } from "../types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 function getFields(isEditing: boolean): FieldConfig[] {
   return [
     { name: "title", label: "Title", type: "text", placeholder: "Post title" },
-    {
-      name: "slug",
-      label: "Slug",
-      type: "text",
-      placeholder: "post-url-slug",
-    },
     {
       name: "author",
       label: "Author",
@@ -44,7 +37,7 @@ function getFields(isEditing: boolean): FieldConfig[] {
       options: ["draft", "published"],
     },
     {
-      name: "imageUrl",
+      name: "image", // must match uploadBlogImage.single("...") on the backend
       label: "Cover image",
       type: "file",
       accept: "image/*",
@@ -53,6 +46,20 @@ function getFields(isEditing: boolean): FieldConfig[] {
     },
   ];
 }
+
+// Mongo returns `_id`; the UI uses `id`. Support both.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const normalize = (p: any): BlogPost => ({ ...p, id: p.id ?? p._id });
+
+async function readError(res: Response, fallback: string) {
+  const data = await res.json().catch(() => null);
+  return data?.message ?? fallback;
+}
+
+const errMessage = (err: unknown, fallback: string) =>
+  err instanceof Error && err.message !== "Failed to fetch"
+    ? err.message
+    : fallback;
 
 export default function BlogSection() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -71,21 +78,21 @@ export default function BlogSection() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/v1/blogs/admin/all`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/v1/blogs/admin/all");
 
       if (res.status === 404) {
         setPosts([]);
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to load blog posts");
+      if (!res.ok)
+        throw new Error(await readError(res, "Failed to load blog posts"));
 
       const data = await res.json();
-      setPosts(data.data ?? data);
-    } catch {
-      setError("Couldn't load blog posts. Try refreshing.");
+      const list = data.data ?? data;
+      setPosts(Array.isArray(list) ? list.map(normalize) : []);
+    } catch (err) {
+      setError(errMessage(err, "Couldn't load blog posts. Try refreshing."));
     } finally {
       setLoading(false);
     }
@@ -118,7 +125,6 @@ export default function BlogSection() {
     if (!post) return {};
     return {
       title: post.title,
-      slug: post.slug,
       author: post.author,
       category: post.category,
       content: post.content,
@@ -130,7 +136,7 @@ export default function BlogSection() {
     const formData = new FormData();
 
     for (const [key, value] of Object.entries(values)) {
-      if (value === undefined || value === null) continue;
+      if (value === undefined || value === null || value === "") continue;
 
       if (key === "published") {
         formData.append("published", String(value === "published"));
@@ -151,34 +157,34 @@ export default function BlogSection() {
 
     try {
       if (editing) {
-        const res = await fetch(
-          `${API_BASE}/api/v1/blogs/admin/${editing.id}`,
-          {
-            method: "PUT",
-            credentials: "include",
-            body: formData,
-          },
-        );
-        if (!res.ok) throw new Error("Failed to update post");
-        const updated = await res.json();
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === editing.id ? { ...p, ...(updated.data ?? updated) } : p,
-          ),
-        );
-      } else {
-        const res = await fetch(`${API_BASE}/api/v1/blogs/admin`, {
-          method: "POST",
-          credentials: "include",
+        const res = await apiFetch(`/api/v1/blogs/admin/${editing.id}`, {
+          method: "PUT",
           body: formData,
         });
-        if (!res.ok) throw new Error("Failed to create post");
-        const created = await res.json();
-        setPosts((prev) => [(created.data ?? created) as BlogPost, ...prev]);
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't update post."));
+        const updated = normalize((await res.json()).data);
+        setPosts((prev) =>
+          prev.map((p) => (p.id === editing.id ? { ...p, ...updated } : p)),
+        );
+      } else {
+        const res = await apiFetch("/api/v1/blogs/admin", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't create post."));
+        const created = normalize((await res.json()).data);
+        setPosts((prev) => [created, ...prev]);
       }
       setModalOpen(false);
-    } catch {
-      setError(editing ? "Couldn't update post." : "Couldn't create post.");
+    } catch (err) {
+      setError(
+        errMessage(
+          err,
+          editing ? "Couldn't update post." : "Couldn't create post.",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -189,14 +195,14 @@ export default function BlogSection() {
     const target = deleting;
     setDeleting(null);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/blogs/admin/${target.id}`, {
+      const res = await apiFetch(`/api/v1/blogs/admin/${target.id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete post");
+      if (!res.ok)
+        throw new Error(await readError(res, "Couldn't delete that post."));
       setPosts((prev) => prev.filter((p) => p.id !== target.id));
-    } catch {
-      setError("Couldn't delete that post.");
+    } catch (err) {
+      setError(errMessage(err, "Couldn't delete that post."));
     }
   }
 
