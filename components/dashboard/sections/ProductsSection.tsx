@@ -7,13 +7,11 @@ import Badge from "../Badge";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { Product } from "../types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 function getFields(isEditing: boolean): FieldConfig[] {
   return [
     { name: "name", label: "Name", type: "text", placeholder: "Product name" },
-    { name: "slug", label: "Slug", type: "text", placeholder: "product-slug" },
     {
       name: "tagline",
       label: "Tagline",
@@ -67,7 +65,7 @@ function getFields(isEditing: boolean): FieldConfig[] {
       required: false,
     },
     {
-      name: "previewUrl",
+      name: "image", // was "previewUrl"
       label: "Preview image",
       type: "file",
       accept: "image/*",
@@ -76,6 +74,20 @@ function getFields(isEditing: boolean): FieldConfig[] {
     },
   ];
 }
+
+// Mongo returns `_id`; the UI uses `id`. Support both.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const normalize = (p: any): Product => ({ ...p, id: p.id ?? p._id });
+
+async function readError(res: Response, fallback: string) {
+  const data = await res.json().catch(() => null);
+  return data?.message ?? fallback;
+}
+
+const errMessage = (err: unknown, fallback: string) =>
+  err instanceof Error && err.message !== "Failed to fetch"
+    ? err.message
+    : fallback;
 
 export default function ProductsSection() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -94,21 +106,21 @@ export default function ProductsSection() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/v1/products/all`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/v1/products/all");
 
       if (res.status === 404) {
         setProducts([]);
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to load products");
+      if (!res.ok)
+        throw new Error(await readError(res, "Failed to load products"));
 
       const data = await res.json();
-      setProducts(data.data ?? data);
-    } catch {
-      setError("Couldn't load products. Try refreshing.");
+      const list = data.data ?? data;
+      setProducts(Array.isArray(list) ? list.map(normalize) : []);
+    } catch (err) {
+      setError(errMessage(err, "Couldn't load products. Try refreshing."));
     } finally {
       setLoading(false);
     }
@@ -138,7 +150,6 @@ export default function ProductsSection() {
     if (!product) return {};
     return {
       name: product.name,
-      slug: product.slug,
       tagline: product.tagline,
       description: product.description ?? "",
       problem: product.problem,
@@ -181,32 +192,33 @@ export default function ProductsSection() {
 
     try {
       if (editing) {
-        const res = await fetch(`${API_BASE}/api/v1/products/${editing.id}`, {
+        const res = await apiFetch(`/api/v1/products/${editing.id}`, {
           method: "PUT",
-          credentials: "include",
           body: formData,
         });
-        if (!res.ok) throw new Error("Failed to update product");
-        const updated = await res.json();
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't update product."));
+        const updated = normalize((await res.json()).data);
         setProducts((prev) =>
-          prev.map((p) =>
-            p.id === editing.id ? { ...p, ...(updated.data ?? updated) } : p,
-          ),
+          prev.map((p) => (p.id === editing.id ? { ...p, ...updated } : p)),
         );
       } else {
-        const res = await fetch(`${API_BASE}/api/v1/products`, {
+        const res = await apiFetch("/api/v1/products", {
           method: "POST",
-          credentials: "include",
           body: formData,
         });
-        if (!res.ok) throw new Error("Failed to create product");
-        const created = await res.json();
-        setProducts((prev) => [(created.data ?? created) as Product, ...prev]);
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't create product."));
+        const created = normalize((await res.json()).data);
+        setProducts((prev) => [created, ...prev]);
       }
       setModalOpen(false);
-    } catch {
+    } catch (err) {
       setError(
-        editing ? "Couldn't update product." : "Couldn't create product.",
+        errMessage(
+          err,
+          editing ? "Couldn't update product." : "Couldn't create product.",
+        ),
       );
     } finally {
       setSaving(false);
@@ -218,14 +230,14 @@ export default function ProductsSection() {
     const target = deleting;
     setDeleting(null);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/products/${target.id}`, {
+      const res = await apiFetch(`/api/v1/products/${target.id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete product");
+      if (!res.ok)
+        throw new Error(await readError(res, "Couldn't delete that product."));
       setProducts((prev) => prev.filter((p) => p.id !== target.id));
-    } catch {
-      setError("Couldn't delete that product.");
+    } catch (err) {
+      setError(errMessage(err, "Couldn't delete that product."));
     }
   }
 

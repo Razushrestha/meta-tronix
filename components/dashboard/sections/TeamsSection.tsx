@@ -6,8 +6,7 @@ import DataTable, { Column } from "../DataTable";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { TeamMember } from "../types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 function getFields(isEditing: boolean): FieldConfig[] {
   return [
@@ -45,11 +44,32 @@ function getFields(isEditing: boolean): FieldConfig[] {
       label: "Photo",
       type: "file",
       accept: "image/*",
-      required: !isEditing, // required on create, optional when editing
+      required: !isEditing,
       hint: isEditing ? "Leave empty to keep the current photo." : undefined,
     },
   ];
 }
+
+// Mongo returns `_id`; the UI uses `id`. Support both.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const normalize = (m: any): TeamMember => ({ ...m, id: m.id ?? m._id });
+
+async function readError(res: Response, fallback: string) {
+  const data = await res.json().catch(() => null);
+  return data?.message ?? fallback;
+}
+
+const errMessage = (err: unknown, fallback: string) =>
+  err instanceof Error && err.message !== "Failed to fetch"
+    ? err.message
+    : fallback;
+
+// Backend (buildTeamPayload) expects flat keys, not "socials[x]".
+const SOCIAL_KEYS: Record<string, string> = {
+  "socials.linkedin": "socialsLinkedin",
+  "socials.github": "socialsGithub",
+  "socials.email": "socialsEmail",
+};
 
 export default function TeamsSection() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -68,21 +88,21 @@ export default function TeamsSection() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/v1/team`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/v1/team");
 
       if (res.status === 404) {
-        setMembers([]); // no team members yet — not an error
+        setMembers([]);
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to load team members");
+      if (!res.ok)
+        throw new Error(await readError(res, "Failed to load team members"));
 
       const data = await res.json();
-      setMembers(data.data ?? data);
-    } catch {
-      setError("Couldn't load team members. Try refreshing.");
+      const list = data.data ?? data;
+      setMembers(Array.isArray(list) ? list.map(normalize) : []);
+    } catch (err) {
+      setError(errMessage(err, "Couldn't load team members. Try refreshing."));
     } finally {
       setLoading(false);
     }
@@ -108,8 +128,6 @@ export default function TeamsSection() {
     setModalOpen(true);
   }
 
-  // Flattens the nested `socials` object into dot-keys the form understands,
-  // since EntityModal fields are named "socials.linkedin" etc.
   function toInitialValues(member: TeamMember | null): Record<string, unknown> {
     if (!member) return {};
     return {
@@ -122,20 +140,16 @@ export default function TeamsSection() {
     };
   }
 
-  // Converts flat form values (including "socials.x" dot-keys and a File)
-  // into FormData with bracketed field names, matching the API's expected
-  // multipart/form-data shape (socials[linkedin], socials[github], etc).
   function buildFormData(values: Record<string, unknown>): FormData {
     const formData = new FormData();
 
     for (const [key, value] of Object.entries(values)) {
-      if (value === undefined || value === null) continue;
+      if (value === undefined || value === null || value === "") continue;
 
-      if (key.includes(".")) {
-        const [parent, child] = key.split(".");
-        formData.append(`${parent}[${child}]`, String(value));
-      } else if (value instanceof File) {
+      if (value instanceof File) {
         formData.append(key, value);
+      } else if (SOCIAL_KEYS[key]) {
+        formData.append(SOCIAL_KEYS[key], String(value));
       } else {
         formData.append(key, String(value));
       }
@@ -151,35 +165,35 @@ export default function TeamsSection() {
 
     try {
       if (editing) {
-        const res = await fetch(`${API_BASE}/api/v1/team/${editing.id}`, {
+        const res = await apiFetch(`/api/v1/team/${editing.id}`, {
           method: "PUT",
-          credentials: "include",
-          body: formData, // no Content-Type header — browser sets the multipart boundary
-        });
-        if (!res.ok) throw new Error("Failed to update team member");
-        const updated = await res.json();
-        setMembers((prev) =>
-          prev.map((m) =>
-            m.id === editing.id ? { ...m, ...(updated.data ?? updated) } : m,
-          ),
-        );
-      } else {
-        const res = await fetch(`${API_BASE}/api/v1/team`, {
-          method: "POST",
-          credentials: "include",
           body: formData,
         });
-        if (!res.ok) throw new Error("Failed to add team member");
-        const created = await res.json();
-        setMembers((prev) => [
-          (created.data ?? created) as TeamMember,
-          ...prev,
-        ]);
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't update team member."));
+        const updated = normalize((await res.json()).data);
+        setMembers((prev) =>
+          prev.map((m) => (m.id === editing.id ? { ...m, ...updated } : m)),
+        );
+      } else {
+        const res = await apiFetch("/api/v1/team", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok)
+          throw new Error(await readError(res, "Couldn't add team member."));
+        const created = normalize((await res.json()).data);
+        setMembers((prev) => [created, ...prev]);
       }
       setModalOpen(false);
-    } catch {
+    } catch (err) {
       setError(
-        editing ? "Couldn't update team member." : "Couldn't add team member.",
+        errMessage(
+          err,
+          editing
+            ? "Couldn't update team member."
+            : "Couldn't add team member.",
+        ),
       );
     } finally {
       setSaving(false);
@@ -191,14 +205,16 @@ export default function TeamsSection() {
     const target = deleting;
     setDeleting(null);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/team/${target.id}`, {
+      const res = await apiFetch(`/api/v1/team/${target.id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete team member");
+      if (!res.ok)
+        throw new Error(
+          await readError(res, "Couldn't remove that team member."),
+        );
       setMembers((prev) => prev.filter((m) => m.id !== target.id));
-    } catch {
-      setError("Couldn't remove that team member.");
+    } catch (err) {
+      setError(errMessage(err, "Couldn't remove that team member."));
     }
   }
 

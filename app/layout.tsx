@@ -9,6 +9,7 @@ import {
   sitePhoneE164,
 } from "@/lib/contact-info";
 import { getSiteUrl } from "@/lib/site-url";
+import { AuthProvider } from "@/context/AuthContext";
 
 const siteUrl = getSiteUrl();
 
@@ -111,7 +112,7 @@ export default function RootLayout({
             __html: JSON.stringify(structuredDataJsonLd),
           }}
         />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
