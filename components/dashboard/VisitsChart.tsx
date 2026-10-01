@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from "@/lib/api";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -96,38 +95,51 @@ export default function VisitsChart() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchVisits() {
       setLoading(true);
       setError("");
       try {
-        const { from, to } = getRange(period);
-        const params = new URLSearchParams({
-          from: from.toISOString(),
-          to: to.toISOString(),
-        });
-
-        const res = await fetch(
-          `${API_BASE}/api/v1/analytics/admin/visits?${params}`,
-          { credentials: "include" },
+        const res = await apiFetch(
+          `/api/v1/analytics/admin/visits?period=${period}`,
         );
+
+        if (cancelled) return;
 
         if (res.status === 404) {
           setVisits([]);
           return;
         }
 
-        if (!res.ok) throw new Error("Failed to load visits");
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.message ?? "Failed to load visits");
+        }
 
         const data = await res.json();
-        setVisits(data.data ?? data);
-      } catch {
-        setError("Couldn't load visit data.");
+        if (!cancelled) {
+          const list = data.data ?? data;
+          setVisits(Array.isArray(list) ? list : []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error && err.message !== "Failed to fetch"
+              ? err.message
+              : "Couldn't load visit data.",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchVisits();
+
+    return () => {
+      cancelled = true;
+    };
   }, [period]);
 
   const buckets = useMemo(() => bucketVisits(visits, period), [visits, period]);
