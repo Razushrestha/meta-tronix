@@ -9,7 +9,17 @@ import ConfirmDialog from "../ConfirmDialog";
 import { Product } from "../types";
 import { apiFetch } from "@/lib/api";
 
-function getFields(isEditing: boolean): FieldConfig[] {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+// Backend stores "/uploads/products/x.png"; the browser needs the full URL.
+const imgSrc = (path?: string) =>
+  !path ? undefined : path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+function getFields(
+  isEditing: boolean,
+  currentImage?: string,
+  currentIcon?: string,
+): FieldConfig[] {
   return [
     { name: "name", label: "Name", type: "text", placeholder: "Product name" },
     {
@@ -65,18 +75,29 @@ function getFields(isEditing: boolean): FieldConfig[] {
       required: false,
     },
     {
-      name: "image", // was "previewUrl"
+      name: "icon", // must match { name: "icon" } in multer .fields()
+      label: "Icon / avatar",
+      type: "file",
+      accept: "image/*",
+      required: false,
+      hint: isEditing
+        ? "Small square logo. Leave empty to keep the current one."
+        : "Small square logo shown next to the product name.",
+      previewUrl: currentIcon,
+    },
+    {
+      name: "image", // must match { name: "image" } in multer .fields()
       label: "Preview image",
       type: "file",
       accept: "image/*",
       required: !isEditing,
       hint: isEditing ? "Leave empty to keep the current image." : undefined,
+      previewUrl: currentImage,
     },
   ];
 }
 
 // Mongo returns `_id`; the UI uses `id`. Support both.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normalize = (p: Product & { _id?: string }): Product => ({
   ...p,
   id: p.id ?? p._id ?? "",
@@ -130,8 +151,60 @@ export default function ProductsSection() {
   }
 
   const columns: Column<Product>[] = [
+    {
+      key: "iconUrl",
+      label: "Icon",
+      render: (item) => {
+        const src = imgSrc(item.iconUrl);
+        return src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={`${item.name} icon`}
+            className="h-9 w-9 rounded-lg border border-brand-border object-cover"
+          />
+        ) : (
+          <span className="text-brand-muted">—</span>
+        );
+      },
+    },
+    {
+      key: "previewUrl",
+      label: "Preview",
+      render: (item) => {
+        const src = imgSrc(item.previewUrl);
+        return src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={item.name}
+            className="h-9 w-14 rounded-md border border-brand-border object-cover"
+          />
+        ) : (
+          <span className="text-brand-muted">—</span>
+        );
+      },
+    },
     { key: "name", label: "Name" },
-    { key: "tagline", label: "Tagline" },
+    {
+      key: "tagline",
+      label: "Tagline",
+      render: (item) => (
+        <span
+          title={item.tagline}
+          className="block max-w-[16rem] truncate text-brand-muted"
+        >
+          {item.tagline}
+        </span>
+      ),
+    },
+    {
+      key: "featured",
+      label: "Featured",
+      render: (item) => (
+        <span className="text-brand-muted">{item.featured ? "Yes" : "No"}</span>
+      ),
+    },
     {
       key: "status",
       label: "Status",
@@ -179,7 +252,7 @@ export default function ProductsSection() {
       } else if (key === "featured") {
         formData.append("featured", String(value === "yes"));
       } else if (value instanceof File) {
-        formData.append(key, value);
+        formData.append(key, value); // "icon" and "image"
       } else {
         formData.append(key, String(value));
       }
@@ -282,7 +355,11 @@ export default function ProductsSection() {
       <EntityModal
         open={modalOpen}
         title={editing ? "Edit product" : "New product"}
-        fields={getFields(!!editing)}
+        fields={getFields(
+          !!editing,
+          imgSrc(editing?.previewUrl),
+          imgSrc(editing?.iconUrl),
+        )}
         initialValues={toInitialValues(editing)}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}

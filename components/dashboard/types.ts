@@ -22,6 +22,7 @@ export interface Product {
   problem: string;
   features: string[];
   technologies: string[];
+  iconUrl?: string;
   previewUrl: string;
   productUrl: string;
   featured: boolean;
