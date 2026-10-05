@@ -1,133 +1,63 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 import { apiFetch } from "@/lib/api";
 
 type Period = "day" | "week" | "month" | "year";
 
-interface Visit {
-  createdAt: string;
-  country?: string;
+interface Summary {
+  totalVisits: number;
+  uniqueVisitors: number;
+  topCountries: { country: string; count: number }[];
+  topPages: { path: string; count: number }[];
+  trend: { date: string; count: number }[];
 }
 
-interface Bucket {
-  label: string;
-  count: number;
-}
-
-interface CountryCount {
-  country: string;
-  count: number;
-}
-
-const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "day", label: "24 hours" },
-  { value: "week", label: "7 days" },
-  { value: "month", label: "30 days" },
-  { value: "year", label: "12 months" },
+const PERIODS: { value: Period; label: string }[] = [
+  { value: "day", label: "24h" },
+  { value: "week", label: "7d" },
+  { value: "month", label: "30d" },
+  { value: "year", label: "1y" },
 ];
 
-function getRange(period: Period): { from: Date; to: Date } {
-  const to = new Date();
-  const from = new Date();
-
-  if (period === "day") from.setDate(from.getDate() - 1);
-  if (period === "week") from.setDate(from.getDate() - 7);
-  if (period === "month") from.setDate(from.getDate() - 30);
-  if (period === "year") from.setFullYear(from.getFullYear() - 1);
-
-  return { from, to };
-}
-
-function bucketVisits(visits: Visit[], period: Period): Bucket[] {
-  const buckets = new Map<string, number>();
-
-  function keyFor(date: Date): string {
-    if (period === "day") {
-      return date.toLocaleTimeString([], { hour: "2-digit" });
-    }
-    if (period === "year") {
-      return date.toLocaleDateString([], { month: "short" });
-    }
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
-  }
-
-  const { from, to } = getRange(period);
-  const cursor = new Date(from);
-
-  while (cursor <= to) {
-    buckets.set(keyFor(cursor), 0);
-    if (period === "day") cursor.setHours(cursor.getHours() + 1);
-    else if (period === "year") cursor.setMonth(cursor.getMonth() + 1);
-    else cursor.setDate(cursor.getDate() + 1);
-  }
-
-  for (const visit of visits) {
-    const key = keyFor(new Date(visit.createdAt));
-    buckets.set(key, (buckets.get(key) ?? 0) + 1);
-  }
-
-  return Array.from(buckets.entries()).map(([label, count]) => ({
-    label,
-    count,
-  }));
-}
-
-function topCountries(visits: Visit[], limit = 5): CountryCount[] {
-  const counts = new Map<string, number>();
-
-  for (const visit of visits) {
-    const country = visit.country?.trim() || "Unknown";
-    counts.set(country, (counts.get(country) ?? 0) + 1);
-  }
-
-  return Array.from(counts.entries())
-    .map(([country, count]) => ({ country, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
-}
-
 export default function VisitsChart() {
-  const [period, setPeriod] = useState<Period>("week");
-  const [visits, setVisits] = useState<Visit[]>([]);
+  const [period, setPeriod] = useState<Period>("month");
+  const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchVisits() {
+    async function load() {
       setLoading(true);
       setError("");
       try {
         const res = await apiFetch(
-          `/api/v1/analytics/admin/visits?period=${period}`,
+          `/api/v1/analytics/admin/summary?period=${period}`,
         );
-
-        if (cancelled) return;
-
-        if (res.status === 404) {
-          setVisits([]);
-          return;
-        }
-
         if (!res.ok) {
           const body = await res.json().catch(() => null);
-          throw new Error(body?.message ?? "Failed to load visits");
+          throw new Error(body?.message ?? "Failed to load analytics");
         }
-
-        const data = await res.json();
-        if (!cancelled) {
-          const list = data.data ?? data;
-          setVisits(Array.isArray(list) ? list : []);
-        }
+        const json = await res.json();
+        if (!cancelled) setData(json.data);
       } catch (err) {
         if (!cancelled) {
           setError(
             err instanceof Error && err.message !== "Failed to fetch"
               ? err.message
-              : "Couldn't load visit data.",
+              : "Couldn't load analytics.",
           );
         }
       } finally {
@@ -135,118 +65,127 @@ export default function VisitsChart() {
       }
     }
 
-    fetchVisits();
-
+    load();
     return () => {
       cancelled = true;
     };
   }, [period]);
 
-  const buckets = useMemo(() => bucketVisits(visits, period), [visits, period]);
-  const maxCount = Math.max(1, ...buckets.map((b) => b.count));
-  const totalVisits = visits.length;
-
-  const countries = useMemo(() => topCountries(visits), [visits]);
-  const maxCountryCount = Math.max(1, ...countries.map((c) => c.count));
+  // Shorten bucket labels for the x-axis
+  const formatTick = (v: string) =>
+    period === "day" ? v.slice(11, 16) : period === "year" ? v : v.slice(5);
 
   return (
-    <div className="rounded-xl border border-brand-border bg-white p-6">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-brand-navy">Site visits</p>
-          <p className="text-xs text-brand-muted">
-            {loading ? "Loading…" : `${totalVisits} visits in range`}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Top countries — compact horizontal bars, sits beside the period toggle */}
-          {!loading && countries.length > 0 && (
-            <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
-              {countries.map((c) => (
-                <div
-                  key={c.country}
-                  className="group relative flex flex-col items-center gap-1"
-                  title={`${c.country}: ${c.count}`}
-                >
-                  <span className="text-[10px] font-medium text-brand-muted">
-                    {c.count}
-                  </span>
-                  <div className="h-8 w-2.5 overflow-hidden rounded-sm bg-slate-200">
-                    <div
-                      className="w-full rounded-sm bg-cyan-400 transition-all group-hover:bg-cyan-500"
-                      style={{
-                        height: `${Math.max(
-                          10,
-                          (c.count / maxCountryCount) * 100,
-                        )}%`,
-                        marginTop: "auto",
-                      }}
-                    />
-                  </div>
-                  <span className="max-w-[48px] truncate text-[10px] text-brand-muted">
-                    {c.country}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-1 rounded-lg bg-slate-50 p-1">
-            {PERIOD_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setPeriod(opt.value)}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  period === opt.value
-                    ? "bg-white text-brand-navy shadow-sm"
-                    : "text-brand-muted hover:text-brand-navy"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+    <div className="rounded-xl border border-brand-border bg-white p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-base font-semibold">Site visits</h2>
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+          {PERIODS.map((p) => (
+            <button
+              key={p.value}
+              onClick={() => setPeriod(p.value)}
+              className={`rounded-md px-3 py-1 text-sm ${
+                period === p.value
+                  ? "bg-white font-medium shadow-sm"
+                  : "text-brand-muted"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {error && (
-        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
           {error}
         </p>
       )}
 
-      {loading ? (
+      {loading && !data ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-brand-muted">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading chart…
+          Loading analytics…
         </div>
-      ) : buckets.length === 0 ? (
-        <p className="py-16 text-center text-sm text-brand-muted">
-          No visit data for this range.
-        </p>
-      ) : (
-        <div className="flex h-40 items-end gap-1.5">
-          {buckets.map((bucket) => (
-            <div
-              key={bucket.label}
-              className="group relative flex flex-1 flex-col items-center justify-end"
-            >
-              <div className="pointer-events-none absolute -top-7 hidden rounded-md bg-brand-navy px-2 py-1 text-xs text-white group-hover:block">
-                {bucket.count}
-              </div>
-              <div
-                className="w-full rounded-t-sm bg-cyan-400 transition-all hover:bg-cyan-500"
-                style={{
-                  height: `${Math.max(4, (bucket.count / maxCount) * 100)}%`,
-                }}
-              />
-              <span className="mt-1.5 w-full truncate text-center text-[10px] text-brand-muted">
-                {bucket.label}
-              </span>
+      ) : data ? (
+        <div className={loading ? "opacity-60 transition-opacity" : ""}>
+          <div className="mb-4 grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-brand-muted">Total visits</p>
+              <p className="text-2xl font-semibold">{data.totalVisits}</p>
             </div>
-          ))}
+            <div>
+              <p className="text-sm text-brand-muted">Unique visitors</p>
+              <p className="text-2xl font-semibold">{data.uniqueVisitors}</p>
+            </div>
+          </div>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.trend}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatTick}
+                  fontSize={12}
+                />
+                <YAxis allowDecimals={false} fontSize={12} width={32} />
+                <Tooltip />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  name="Visits"
+                  stroke="#2563eb"
+                  fill="#2563eb"
+                  fillOpacity={0.15}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <ListBlock
+              title="Top countries"
+              rows={data.topCountries.map((c) => ({
+                label: c.country,
+                count: c.count,
+              }))}
+            />
+            <ListBlock
+              title="Top pages"
+              rows={data.topPages.map((p) => ({
+                label: p.path,
+                count: p.count,
+              }))}
+            />
+          </div>
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ListBlock({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; count: number }[];
+}) {
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-medium">{title}</h3>
+      {rows.length === 0 ? (
+        <p className="text-sm text-brand-muted">No data yet.</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {rows.map((r) => (
+            <li key={r.label} className="flex justify-between text-sm">
+              <span className="truncate pr-2">{r.label}</span>
+              <span className="text-brand-muted">{r.count}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
