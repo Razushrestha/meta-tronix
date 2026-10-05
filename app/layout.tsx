@@ -10,6 +10,7 @@ import {
 } from "@/lib/contact-info";
 import { getSiteUrl } from "@/lib/site-url";
 import { AuthProvider } from "@/context/AuthContext";
+import PageTracker from "@/components/PageTracker";
 
 const siteUrl = getSiteUrl();
 
@@ -112,6 +113,7 @@ export default function RootLayout({
             __html: JSON.stringify(structuredDataJsonLd),
           }}
         />
+        <PageTracker />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
