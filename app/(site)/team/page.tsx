@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Mail } from "lucide-react";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { PageHero } from "@/components/layout/PageHero";
@@ -7,6 +6,7 @@ import { FadeInSection } from "@/components/shared/FadeInSection";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { TeamBackground } from "@/components/shared/TeamBackground";
+import { TeamMember } from "@/components/dashboard/types";
 
 export const metadata: Metadata = {
   title: "Team",
@@ -15,12 +15,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/team" },
 };
 
-type TeamMember = {
-  id: string;
+// Always render fresh so new/edited members show up immediately.
+export const dynamic = "force-dynamic";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const FALLBACK_PHOTO = "/team/member-2.jpg"; // must exist in /public
+
+// Shape of one team member as returned by the backend (Mongo document).
+type ApiTeamMember = {
+  _id?: string;
+  id?: string;
   name: string;
   role: string;
   bio: string;
-  photo: string;
+  photoUrl?: string;
   socials?: {
     linkedin?: string;
     github?: string;
@@ -28,109 +36,43 @@ type TeamMember = {
   };
 };
 
-const teamMembers: TeamMember[] = [
-  {
-    id: "ronit-shrivastav",
-    name: "Ronit Shrivastav",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/CEO.jpeg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "razu-shrestha",
-    name: "Er. Razu Shrestha",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/razu.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "ayush-karki",
-    name: "Ayush karki",
-    role: "Full Stack Developer",
-    bio: "Builds and scales backend systems with Node.js, Express, and MongoDB focused on clean data modeling and API design.",
-    photo: "/team/ayush.jpeg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-      email: "#",
-    },
-  },
-  {
-    id: "prashant-sharma",
-    name: "Prashant Sharma",
-    role: "Senior Flutter Developer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/Prashant.jpeg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "deepak-shrestha",
-    name: "Deepak shrestha",
-    role: "Senior Frontend developer",
-    bio: "Leads discovery and design systems work, keeping every product visually consistent and easy to use.",
-    photo: "/team/deepak.jpeg",
-    socials: {
-      linkedin: "#",
-    },
-  },
-  {
-    id: "badal-chand",
-    name: "Badal Chand",
-    role: "Full stack developer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/badal.jpeg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "ajay-tamang",
-    name: "Ajay Tamang",
-    role: "Backend developer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/ajay.png",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "team-member-3",
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-  {
-    id: "team-member-4",
-    name: "Team Member",
-    role: "Frontend Engineer",
-    bio: "Crafts fast, accessible interfaces with React and Next.js, translating designs into production-ready UI.",
-    photo: "/team/member-2.jpg",
-    socials: {
-      linkedin: "#",
-      github: "#",
-    },
-  },
-];
+// Backend stores "/uploads/team/xxx.jpg"; the browser needs the full URL.
+function toPhotoUrl(path?: string): string {
+  if (!path) return FALLBACK_PHOTO;
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+}
 
-export default function TeamPage() {
+async function getTeamMembers(): Promise<TeamMember[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/team`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    const list: ApiTeamMember[] = json.data ?? json;
+    if (!Array.isArray(list)) return [];
+
+    return list.map(
+      (m): TeamMember => ({
+        id: m._id ?? m.id ?? "",
+        name: m.name,
+        role: m.role,
+        bio: m.bio,
+        photoUrl: toPhotoUrl(m.photoUrl), // already a full URL from here on
+        socials: m.socials,
+      }),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export default async function TeamPage() {
+  const teamMembers = await getTeamMembers();
+
   return (
     <>
       <PageHero
@@ -163,70 +105,79 @@ export default function TeamPage() {
             subtitle="Every person below is directly involved in the products we ship no hidden bench of subcontractors."
           />
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id} // ← unique now
-                className="rounded-2xl border border-brand-border bg-white p-6 shadow-soft hover:shadow-soft-md transition-shadow"
-              >
-                <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-brand-border">
-                  <Image
-                    src={member.photo}
-                    alt={member.name}
-                    width={80}
-                    height={80}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                <h3 className="mt-5 font-display text-lg font-bold text-brand-navy">
-                  {member.name}
-                </h3>
-                <p className="text-sm font-semibold text-[#0EA5E9]">
-                  {member.role}
-                </p>
-                <p className="mt-3 text-sm text-brand-body leading-relaxed">
-                  {member.bio}
-                </p>
-
-                {member.socials && (
-                  <div className="mt-5 flex gap-3">
-                    {member.socials.linkedin && (
-                      <a
-                        href={member.socials.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`${member.name} on LinkedIn`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
-                      >
-                        <FaLinkedin className="h-4 w-4" />
-                      </a>
-                    )}
-                    {member.socials.github && (
-                      <a
-                        href={member.socials.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`${member.name} on GitHub`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
-                      >
-                        <FaGithub className="h-4 w-4" />
-                      </a>
-                    )}
-                    {member.socials.email && (
-                      <a
-                        href={`mailto:${member.socials.email}`}
-                        aria-label={`Email ${member.name}`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </a>
-                    )}
+          {teamMembers.length === 0 ? (
+            <p className="py-12 text-center text-brand-body">
+              Our team profiles are coming soon.
+            </p>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teamMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="rounded-2xl border border-brand-border bg-white p-6 shadow-soft hover:shadow-soft-md transition-shadow"
+                >
+                  <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-brand-border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={member.photoUrl}
+                      alt={member.name}
+                      width={80}
+                      height={80}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+
+                  <h3 className="mt-5 font-display text-lg font-bold text-brand-navy [overflow-wrap:anywhere]">
+                    {member.name}
+                  </h3>
+                  <p className="text-sm font-semibold text-[#0EA5E9] [overflow-wrap:anywhere]">
+                    {member.role}
+                  </p>
+                  <p className="mt-3 text-sm text-brand-body leading-relaxed [overflow-wrap:anywhere] line-clamp-4">
+                    {member.bio}
+                  </p>
+
+                  {(member.socials?.linkedin ||
+                    member.socials?.github ||
+                    member.socials?.email) && (
+                    <div className="mt-5 flex gap-3">
+                      {member.socials?.linkedin && (
+                        <a
+                          href={member.socials.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${member.name} on LinkedIn`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
+                        >
+                          <FaLinkedin className="h-4 w-4" />
+                        </a>
+                      )}
+                      {member.socials?.github && (
+                        <a
+                          href={member.socials.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${member.name} on GitHub`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
+                        >
+                          <FaGithub className="h-4 w-4" />
+                        </a>
+                      )}
+                      {member.socials?.email && (
+                        <a
+                          href={`mailto:${member.socials.email}`}
+                          aria-label={`Email ${member.name}`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-border text-slate-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9]/40 transition-colors"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </FadeInSection>
 
