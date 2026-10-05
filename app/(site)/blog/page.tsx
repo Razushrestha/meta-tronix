@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { BlogPageClient } from "@/components/blog/BlogPageClient";
-import { getBlogPostsMerged } from "@/lib/sanity/content";
+import { getPublishedBlogs } from "@/lib/blog-api";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function BlogPage() {
-  const posts = await getBlogPostsMerged();
+  const posts = await getPublishedBlogs();
   return <BlogPageClient posts={posts} />;
 }

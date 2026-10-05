@@ -9,12 +9,37 @@ import { BlogBackground } from "@/components/shared/BlogBackground";
 
 const tabs: BlogCategory[] = ["All", "Tech", "Startup", "AI", "Design", "IoT"];
 
+// BlogPost plus the optional cover image that comes from the API
+type BlogListItem = BlogPost & { imageUrl?: string };
+
 type BlogPageClientProps = {
-  posts: BlogPost[];
+  posts: BlogListItem[];
 };
 
+// Shows the uploaded cover image, or the gradient if there is none
+function Cover({ post, className }: { post: BlogListItem; className: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (post.imageUrl && !failed) {
+    return (
+      <div className={`relative overflow-hidden bg-slate-100 ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={post.imageUrl}
+          alt={post.title}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return <div className={`bg-gradient-to-br ${post.gradient} ${className}`} />;
+}
+
 export function BlogPageClient({ posts }: BlogPageClientProps) {
-  const list = posts.length ? posts : blogPosts;
+  const list: BlogListItem[] = posts.length ? posts : blogPosts;
   const [cat, setCat] = useState<BlogCategory>("All");
 
   const featured = useMemo(
@@ -54,17 +79,18 @@ export function BlogPageClient({ posts }: BlogPageClientProps) {
         <FadeInSection>
           <article className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md">
             <div className="relative grid lg:grid-cols-2 gap-0">
-              <div
-                className={`min-h-[220px] lg:min-h-[320px] bg-gradient-to-br ${featured.gradient}`}
+              <Cover
+                post={featured}
+                className="min-h-[220px] lg:min-h-[320px]"
               />
-              <div className="p-8 md:p-12 flex flex-col justify-center bg-white">
+              <div className="p-8 md:p-12 flex min-w-0 flex-col justify-center bg-white">
                 <span className="text-xs font-bold uppercase tracking-wider text-cyan-700">
                   Featured, {featured.category}
                 </span>
-                <h2 className="mt-3 font-display text-2xl md:text-4xl font-semibold text-slate-900 leading-tight group-hover:text-sky-800 transition-colors">
+                <h2 className="mt-3 font-display text-2xl md:text-4xl font-semibold text-slate-900 leading-tight group-hover:text-sky-800 transition-colors [overflow-wrap:anywhere]">
                   {featured.title}
                 </h2>
-                <p className="mt-4 text-slate-600 leading-relaxed">
+                <p className="mt-4 text-slate-600 leading-relaxed line-clamp-3 [overflow-wrap:anywhere]">
                   {featured.hook}
                 </p>
                 <p className="mt-6 text-sm text-slate-500">
@@ -102,17 +128,15 @@ export function BlogPageClient({ posts }: BlogPageClientProps) {
           {filtered.map((post) => (
             <FadeInSection key={post.slug}>
               <article className="h-full flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden hover:border-sky-300 hover:shadow-md transition-all shadow-sm">
-                <div
-                  className={`h-40 bg-gradient-to-br ${post.gradient} opacity-95`}
-                />
-                <div className="p-6 flex flex-col flex-1">
+                <Cover post={post} className="h-40 shrink-0" />
+                <div className="p-6 flex min-w-0 flex-col flex-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-700">
                     {post.category}
                   </span>
-                  <h3 className="mt-2 font-display text-lg font-semibold text-slate-900 leading-snug">
+                  <h3 className="mt-2 font-display text-lg font-semibold text-slate-900 leading-snug [overflow-wrap:anywhere]">
                     {post.title}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600 leading-relaxed flex-1">
+                  <p className="mt-2 text-sm text-slate-600 leading-relaxed flex-1 line-clamp-3 [overflow-wrap:anywhere]">
                     {post.hook}
                   </p>
                   <p className="mt-4 text-xs text-slate-500">
