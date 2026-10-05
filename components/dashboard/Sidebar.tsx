@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export type DashboardTab =
   | "overview"
@@ -27,8 +28,6 @@ const NAV_ITEMS: { key: DashboardTab; label: string; icon: ElementType }[] = [
   { key: "careers", label: "Careers", icon: Briefcase },
 ];
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
 interface SidebarProps {
   active: DashboardTab;
   onChange: (tab: DashboardTab) => void;
@@ -36,6 +35,7 @@ interface SidebarProps {
 
 export default function Sidebar({ active, onChange }: SidebarProps) {
   const router = useRouter();
+  const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -59,15 +59,12 @@ export default function Sidebar({ active, onChange }: SidebarProps) {
     setLoggingOut(true);
 
     try {
-      await fetch(`${API_BASE}/api/v1/auth/logout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      // Calls the backend, then clears the in-memory token and the user.
+      await logout();
     } catch {
-      // Network failure shouldn't block logout — proceed to redirect anyway.
+      // A network failure shouldn't block logout. Redirect anyway.
     } finally {
-      router.push("/admin/login");
+      router.replace("/admin/login");
       router.refresh(); // clears any cached client state tied to the old session
     }
   }

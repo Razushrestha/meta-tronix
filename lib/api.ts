@@ -9,9 +9,15 @@ export const setAccessToken = (t: string | null) => (accessToken = t);
 
 export function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {
+    // Abort the request if the server doesn't answer in time,
+    // so the auth "loading" state can never hang forever.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     refreshPromise = fetch(`${API_BASE}/api/v1/auth/refresh`, {
       method: "POST",
       credentials: "include",
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("refresh failed");
@@ -24,6 +30,7 @@ export function refreshAccessToken(): Promise<string | null> {
         return null;
       })
       .finally(() => {
+        clearTimeout(timeout);
         refreshPromise = null;
       });
   }
