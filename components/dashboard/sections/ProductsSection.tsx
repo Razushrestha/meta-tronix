@@ -77,7 +77,10 @@ function getFields(isEditing: boolean): FieldConfig[] {
 
 // Mongo returns `_id`; the UI uses `id`. Support both.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const normalize = (p: any): Product => ({ ...p, id: p.id ?? p._id });
+const normalize = (p: Product & { _id?: string }): Product => ({
+  ...p,
+  id: p.id ?? p._id ?? "",
+});
 
 async function readError(res: Response, fallback: string) {
   const data = await res.json().catch(() => null);

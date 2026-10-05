@@ -113,7 +113,10 @@ const FIELDS: FieldConfig[] = [
 
 // Mongo returns `_id`; the UI uses `id`. Support both.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const normalize = (c: any): CareerListing => ({ ...c, id: c.id ?? c._id });
+const normalize = (c: CareerListing & { _id?: string }): CareerListing => ({
+  ...c,
+  id: c.id ?? c._id ?? "",
+});
 
 async function readError(res: Response, fallback: string) {
   const data = await res.json().catch(() => null);

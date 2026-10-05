@@ -13,6 +13,7 @@ export interface FieldConfig {
   required?: boolean; // defaults to true if omitted
   hint?: string; // small helper text shown under the field
   accept?: string; // for file inputs, e.g. "image/*"
+  previewUrl?: string; // for file inputs: URL of the current image (edit mode)
 }
 
 interface EntityModalProps {
@@ -23,6 +24,58 @@ interface EntityModalProps {
   onClose: () => void;
   onSave: (values: Record<string, unknown>) => void;
   saving?: boolean;
+}
+
+// Shows the newly chosen file if there is one, otherwise the current image.
+function ImagePreview({
+  file,
+  currentUrl,
+}: {
+  file?: File;
+  currentUrl?: string;
+}) {
+  const [objectUrl, setObjectUrl] = useState<string | undefined>();
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!file) {
+      setObjectUrl(undefined);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const src = objectUrl ?? currentUrl;
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (!src) return null;
+
+  return (
+    <div className="mb-2">
+      {failed ? (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          Couldn&apos;t load the image. Check that the backend serves{" "}
+          <code>/uploads</code>.
+        </p>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="Preview"
+          onError={() => setFailed(true)}
+          className="h-24 w-24 rounded-lg border border-brand-border object-cover"
+        />
+      )}
+      <p className="mt-1 text-xs text-brand-muted">
+        {objectUrl ? "New image (not saved yet)" : "Current image"}
+      </p>
+    </div>
+  );
 }
 
 export default function EntityModal({
@@ -38,7 +91,8 @@ export default function EntityModal({
 
   useEffect(() => {
     if (open) setValues(initialValues ?? {});
-  }, [open, initialValues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function handleClose() {
     if (saving) return;
@@ -137,19 +191,25 @@ export default function EntityModal({
                           }
                         />
                       ) : field.type === "file" ? (
-                        <input
-                          type="file"
-                          accept={field.accept ?? "image/*"}
-                          required={isRequired}
-                          disabled={saving}
-                          className="w-full rounded-lg border border-brand-border px-3 py-2 text-sm text-brand-body file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-navy hover:file:bg-slate-200 focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy disabled:bg-slate-50"
-                          onChange={(e) =>
-                            setValues((v) => ({
-                              ...v,
-                              [field.name]: e.target.files?.[0] ?? undefined,
-                            }))
-                          }
-                        />
+                        <>
+                          <ImagePreview
+                            file={values[field.name] as File | undefined}
+                            currentUrl={field.previewUrl}
+                          />
+                          <input
+                            type="file"
+                            accept={field.accept ?? "image/*"}
+                            required={isRequired}
+                            disabled={saving}
+                            className="w-full rounded-lg border border-brand-border px-3 py-2 text-sm text-brand-body file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-navy hover:file:bg-slate-200 focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy disabled:bg-slate-50"
+                            onChange={(e) =>
+                              setValues((v) => ({
+                                ...v,
+                                [field.name]: e.target.files?.[0] ?? undefined,
+                              }))
+                            }
+                          />
+                        </>
                       ) : (
                         <input
                           required={isRequired}

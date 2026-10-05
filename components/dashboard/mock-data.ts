@@ -96,7 +96,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: "Sabina Rai",
     role: "Design Lead",
     bio: "Leads product design and creates thoughtful, user-focused digital experiences.",
-    photo: "",
+    photoUrl: "",
     socials: {
       linkedin: "https://linkedin.com/in/sabina-rai",
       github: "https://github.com/sabina-rai",
@@ -108,7 +108,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: "Prakash Shrestha",
     role: "Backend Engineer",
     bio: "Builds reliable backend systems, APIs, and scalable application infrastructure.",
-    photo: "",
+    photoUrl: "",
     socials: {
       linkedin: "https://linkedin.com/in/prakash-shrestha",
       github: "https://github.com/prakash-shrestha",
@@ -120,7 +120,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: "Nisha Gurung",
     role: "Marketing Associate",
     bio: "Works on brand communication, content strategy, and digital marketing initiatives.",
-    photo: "",
+    photoUrl: "",
     socials: {
       linkedin: "https://linkedin.com/in/nisha-gurung",
       github: "",

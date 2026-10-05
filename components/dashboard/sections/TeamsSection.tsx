@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Linkedin, Github, Mail } from "lucide-react";
 import DataTable, { Column } from "../DataTable";
 import EntityModal, { FieldConfig } from "../EntityModal";
 import ConfirmDialog from "../ConfirmDialog";
 import { TeamMember } from "../types";
 import { apiFetch } from "@/lib/api";
 
-function getFields(isEditing: boolean): FieldConfig[] {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+// Backend stores "/uploads/team/abc.jpg"; the browser needs the full URL.
+const photoSrc = (path?: string) =>
+  !path ? undefined : path.startsWith("http") ? path : `${API_BASE}${path}`;
+
+function getFields(isEditing: boolean, currentPhoto?: string): FieldConfig[] {
   return [
     { name: "name", label: "Name", type: "text", placeholder: "Full name" },
     {
@@ -34,7 +40,7 @@ function getFields(isEditing: boolean): FieldConfig[] {
     },
     {
       name: "socials.email",
-      label: "Social email",
+      label: "Contact email",
       type: "text",
       placeholder: "name@example.com",
       required: false,
@@ -46,13 +52,17 @@ function getFields(isEditing: boolean): FieldConfig[] {
       accept: "image/*",
       required: !isEditing,
       hint: isEditing ? "Leave empty to keep the current photo." : undefined,
+      previewUrl: currentPhoto,
     },
   ];
 }
 
 // Mongo returns `_id`; the UI uses `id`. Support both.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const normalize = (m: any): TeamMember => ({ ...m, id: m.id ?? m._id });
+const normalize = (m: TeamMember & { _id?: string }): TeamMember => ({
+  ...m,
+  id: m.id ?? m._id ?? "",
+});
 
 async function readError(res: Response, fallback: string) {
   const data = await res.json().catch(() => null);
@@ -70,6 +80,9 @@ const SOCIAL_KEYS: Record<string, string> = {
   "socials.github": "socialsGithub",
   "socials.email": "socialsEmail",
 };
+
+const iconLinkClass =
+  "inline-flex h-8 w-8 items-center justify-center rounded-full border border-brand-border text-slate-500 transition-colors hover:border-cyan-400 hover:text-cyan-600";
 
 export default function TeamsSection() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -109,12 +122,83 @@ export default function TeamsSection() {
   }
 
   const columns: Column<TeamMember>[] = [
+    {
+      key: "photoUrl",
+      label: "Photo",
+      render: (item) => {
+        const src = photoSrc(item.photoUrl);
+        return src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={item.name}
+            className="h-9 w-9 rounded-full border border-brand-border object-cover"
+          />
+        ) : (
+          <span className="text-brand-muted">—</span>
+        );
+      },
+    },
     { key: "name", label: "Name" },
     { key: "role", label: "Role" },
     {
+      key: "bio",
+      label: "Bio",
+      render: (item) => (
+        <span
+          title={item.bio}
+          className="block max-w-[16rem] truncate text-brand-muted"
+        >
+          {item.bio}
+        </span>
+      ),
+    },
+    {
       key: "socials",
-      label: "Email",
-      render: (item) => item.socials?.email ?? "—",
+      label: "Links",
+      render: (item) => {
+        const { linkedin, github, email } = item.socials ?? {};
+
+        if (!linkedin && !github && !email) {
+          return <span className="text-brand-muted">No links</span>;
+        }
+
+        return (
+          <div className="flex items-center gap-2">
+            {linkedin && (
+              <a
+                href={linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className={iconLinkClass}
+              >
+                <Linkedin className="h-4 w-4" />
+              </a>
+            )}
+            {github && (
+              <a
+                href={github}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                className={iconLinkClass}
+              >
+                <Github className="h-4 w-4" />
+              </a>
+            )}
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                aria-label="Email"
+                className={iconLinkClass}
+              >
+                <Mail className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -256,7 +340,7 @@ export default function TeamsSection() {
       <EntityModal
         open={modalOpen}
         title={editing ? "Edit member" : "New member"}
-        fields={getFields(!!editing)}
+        fields={getFields(!!editing, photoSrc(editing?.photoUrl))}
         initialValues={toInitialValues(editing)}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}

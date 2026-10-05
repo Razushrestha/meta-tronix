@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { MapPin, Clock, ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { FadeInSection } from "@/components/shared/FadeInSection";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { resolveAboutIcon } from "@/lib/about-icons";
 import { CareersBackground } from "@/components/shared/CareersBackground";
+import { getOpenCareers } from "@/lib/careers-api";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -12,6 +15,9 @@ export const metadata: Metadata = {
     "Join Meta Tronix open roles for engineers and designers building product engineering and digital transformation work from Kathmandu, Nepal.",
   alternates: { canonical: "/careers" },
 };
+
+// Always render fresh so new/closed roles show up immediately.
+export const dynamic = "force-dynamic";
 
 const benefits = [
   {
@@ -46,7 +52,9 @@ const benefits = [
   },
 ];
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const roles = await getOpenCareers();
+
   return (
     <>
       <PageHero
@@ -116,11 +124,45 @@ export default function CareersPage() {
             subtitle="Don't see a role that fits? We're always open to hearing from strong engineers and designers."
           />
 
-          <div className="rounded-2xl border border-dashed border-brand-border bg-brand-section p-10 text-center">
-            <p className="text-brand-body">
-              No open roles right now but we&apos;d still love to hear from you.
-            </p>
-          </div>
+          {roles.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-brand-border bg-brand-section p-10 text-center">
+              <p className="text-brand-body">
+                No open roles right now but we&apos;d still love to hear from
+                you.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {roles.map((role) => (
+                <Link
+                  key={role.id}
+                  href={`/careers/${role.id}`}
+                  className="group flex items-center justify-between gap-6 rounded-2xl border border-brand-border bg-white p-6 shadow-soft transition-shadow hover:shadow-soft-md"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#0EA5E9] [overflow-wrap:anywhere]">
+                      {role.department}
+                    </p>
+                    <h3 className="mt-1 font-display text-lg font-bold text-brand-navy [overflow-wrap:anywhere]">
+                      {role.title}
+                    </h3>
+                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-brand-muted">
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4" />
+                        {role.location}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 capitalize">
+                        <Clock className="h-4 w-4" />
+                        {role.employmentType.replace("-", " ")} ·{" "}
+                        {role.workplace}
+                      </span>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#0EA5E9]" />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </FadeInSection>
 
